@@ -41,12 +41,12 @@ int checkpoint_recover() {
 int get_program_state(uint32_t * buf) { // Number of stored values needs to match CHECKPOINT_WORDS
     // Register data
     for (int i = 0; i <= 12; ++i) {
-        asm volotile("MOV %0, R%d\n": "=r" (buf[i]) : "r" (i) : );
+        asm volatile("MOV %0, R%d\n": "=r" (buf[i]) : "r" (i) : );
     }
-    asm volotile("MRS %0, MSP\n": "=r" (buf[13]) : : );
-    asm volotile("MRS %0, PSP\n": "=r" (buf[14]) : : );
-    asm volotile("MRS %0, LR\n": "=r" (buf[15]) : : );
-    asm volotile("MRS %0, PC\n": "=r" (buf[16]) : : );
+    asm volatile("MRS %0, MSP\n": "=r" (buf[13]) : : );
+    asm volatile("MRS %0, PSP\n": "=r" (buf[14]) : : );
+    asm volatile("MRS %0, LR\n": "=r" (buf[15]) : : );
+    asm volatile("MRS %0, PC\n": "=r" (buf[16]) : : );
 
     // RAM data
     
@@ -58,12 +58,12 @@ int get_program_state(uint32_t * buf) { // Number of stored values needs to matc
 int set_program_state(uint32_t * buf) {
     // Register data
     for (int i = 0; i <= 12; ++i) {
-        asm volotile("MOV R%d, %0\n":  "r" (i) :"=r" (buf[i]) : );
+        asm volatile("MOV R%d, %0\n":  "r" (i) :"=r" (buf[i]) : );
     }
-    asm volotile("MRS MSP, %0\n": : "=r" (buf[13]) : );
-    asm volotile("MRS PSP, %0\n": : "=r" (buf[14]) : );
-    asm volotile("MRS LR, %0\n": : "=r" (buf[15]) : );
-    asm volotile("MRS PC, %0\n": : "=r" (buf[16]) : );
+    asm volatile("MRS MSP, %0\n": : "=r" (buf[13]) : );
+    asm volatile("MRS PSP, %0\n": : "=r" (buf[14]) : );
+    asm volatile("MRS LR, %0\n": : "=r" (buf[15]) : );
+    asm volatile("MRS PC, %0\n": : "=r" (buf[16]) : );
 
     // RAM data
     
