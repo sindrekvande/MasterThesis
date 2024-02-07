@@ -27,21 +27,37 @@
 #define MAX_REC_COUNT		1
 #define NDEF_MSG_BUF_SIZE	128
 
-#define SLEEP_LED			17
+#define WAKEUP_LED			DK_LED1
 #define SYSTEM_ON_LED		DK_LED2
 
-#define SLEEP_PIN			13
-#define WAKEUP_PIN			14
+#define SLEEP_BTN			13
+#define WAKEUP_BTN			14
 
+static void system_off()
+{
+	printk("Powering off.\n");
+
+	dk_set_led_off(SYSTEM_ON_LED);
+	dk_set_led_off(WAKEUP_LED);
+
+	sys_poweroff();
+}
 
 static void input_pin_handle(unsigned int pin, nrfx_gpiote_trigger_t action, void * p)
 {
-	printk("Handler \n");
-	nrf_gpio_pin_toggle(SLEEP_LED); // Toggle LED on interrupt
+	switch (pin)
+	{
+	case SLEEP_BTN:
+		printk("SLEEP BUTTON\n");
+		system_off();
+		break;
 	
-	printk("Powering off.\n");
-	dk_set_led_off(SYSTEM_ON_LED);
-	sys_poweroff();
+	case WAKEUP_BTN:
+		printk("WAKEUP BUTTON\n");
+		dk_set_led_on(WAKEUP_LED);
+		dk_set_led_on(SYSTEM_ON_LED);
+		break;
+	}
 }
 
 
@@ -49,34 +65,70 @@ static void gpio_init()
 {
 	nrfx_err_t err_code; // Hold error value
 
-	err_code = nrfx_gpiote_init(0); // Initialize the GPIOTE
-	printk("Error (0x%X)\n", err_code); // Check for errors
-
-	nrf_gpio_cfg_output(SLEEP_LED); // Initialize the LED
-	nrf_gpio_pin_set(SLEEP_LED); // Turn off the LED
+	if (!nrfx_gpiote_is_init()){
+		err_code = nrfx_gpiote_init(0); // Initialize the GPIOTE
+		printk("Error (0x%X)\n", err_code); 
+	}
 
 	nrfx_gpiote_input_config_t in_config;
 	in_config.pull = NRF_GPIO_PIN_PULLUP;
 	
 	nrfx_gpiote_trigger_config_t trig_config;
-	trig_config.trigger = NRF_GPIOTE_POLARITY_HITOLO;
+	trig_config.trigger = NRF_GPIOTE_POLARITY_LOTOHI;
 
 	nrfx_gpiote_handler_config_t hand_config;
 	hand_config.handler = &input_pin_handle;
 
-	err_code = nrfx_gpiote_input_configure(SLEEP_PIN, &in_config, &trig_config, &hand_config); // Initialize interrupt pin
-	printk("Error (0x%X)\n", err_code);;
+	err_code = nrfx_gpiote_input_configure(SLEEP_BTN, &in_config, &trig_config, &hand_config); // Initialize interrupt pin
+	printk("Error (0x%X)\n", err_code);
+	err_code = nrfx_gpiote_input_configure(WAKEUP_BTN, &in_config, &trig_config, &hand_config);
+	printk("Error (0x%X)\n", err_code);
 
-	nrfx_gpiote_trigger_enable(SLEEP_PIN, true); // Enable interrupt events
+	nrfx_gpiote_trigger_enable(SLEEP_BTN, true); // Enable interrupt events
+	nrfx_gpiote_trigger_enable(WAKEUP_BTN, true); 
 }
 
-static void system_off()
+/**
+ * @brief  Helper function for printing the reason of the last reset.
+ * Can be used to confirm that NCF field actually woke up the system.
+ */
+static void print_reset_reason(void)
 {
-	printk("Powering off.\n");
+	uint32_t reas;
 
-	dk_set_led_off(SYSTEM_ON_LED);
+#if NRF_POWER_HAS_RESETREAS
 
-	sys_poweroff();
+	reas = nrf_power_resetreas_get(NRF_POWER);
+	nrf_power_resetreas_clear(NRF_POWER, reas);
+	if (reas & NRF_POWER_RESETREAS_NFC_MASK) {
+		printk("Wake up by NFC field detect\n");
+	} else if (reas & NRF_POWER_RESETREAS_RESETPIN_MASK) {
+		printk("Reset by pin-reset\n");
+	} else if (reas & NRF_POWER_RESETREAS_SREQ_MASK) {
+		printk("Reset by soft-reset\n");
+	} else if (reas) {
+		printk("Reset by a different source (0x%08X)\n", reas);
+	} else {
+		printk("Power-on-reset\n");
+	}
+
+#else
+
+	reas = nrf_reset_resetreas_get(NRF_RESET);
+	nrf_reset_resetreas_clear(NRF_RESET, reas);
+	if (reas & NRF_RESET_RESETREAS_NFC_MASK) {
+		printk("Wake up by NFC field detect\n");
+	} else if (reas & NRF_RESET_RESETREAS_RESETPIN_MASK) {
+		printk("Reset by pin-reset\n");
+	} else if (reas & NRF_RESET_RESETREAS_SREQ_MASK) {
+		printk("Reset by soft-reset\n");
+	} else if (reas) {
+		printk("Reset by a different source (0x%08X)\n", reas);
+	} else {
+		printk("Power-on-reset\n");
+	}
+
+#endif
 }
 
 int main(void)
@@ -91,8 +143,7 @@ int main(void)
 
 	gpio_init();
 
-	while (true)
-	{
+	print_reset_reason();
 
-	}
+	return 0;
 }
