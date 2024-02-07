@@ -4,6 +4,7 @@
 #include <zephyr/device.h>
 #include <zephyr/devicetree.h>
 #include <stdio.h>
+#include <stdint.h>
 
 #ifdef CONFIG_TRUSTED_EXECUTION_NONSECURE
 #define PARTITION	slot1_ns_partition
@@ -15,7 +16,7 @@
 #define PARTITION_DEVICE	FIXED_PARTITION_DEVICE(PARTITION)
 
 #define FLASH_PAGE_SIZE   4096
-#define CHECKPOINT_WORDS    3
+#define CHECKPOINT_WORDS    17
 
 /**
  * @brief Creates checkpoint for current tasks.
@@ -45,3 +46,11 @@ int checkpoint_test_flash();
  * @return int 
  */
 int get_program_state(uint32_t * buf);
+
+/**
+ * @brief Set the program state from values in buffer
+ * 
+ * @param buf[in] 
+ * @return int 
+ */
+int set_program_state(uint32_t * buf);
