@@ -41,10 +41,6 @@ int checkpoint_recover() {
 }
 
 int get_program_state(uint32_t * buf) { // Number of stored values needs to match CHECKPOINT_WORDS
-    uint32_t *ram_start = &_sram_data_start;
-    uint32_t *ram_end = &_sram_data_end;
-    uint32_t offset = RAM_STORAGE_OFFSET; // Offset in flash where RAM data is stored
-
     // Register data
     for (int i = 0; i <= 12; ++i) {
         __asm__ volatile("MOV %0, R%d\n": "=r" (buf[i]) : "r" (i) : );
@@ -55,26 +51,12 @@ int get_program_state(uint32_t * buf) { // Number of stored values needs to matc
     __asm__ volatile("MRS %0, PC\n": "=r" (buf[16]) : : );
 
     // RAM data
-    // Loop through the flash storage and restore it to RAM
-    for (uint32_t *ram_ptr = ram_start; ram_ptr < ram_end; ram_ptr++, offset += sizeof(uint32_t)) {
-        uint32_t read_value;
-        if (flash_read(flash_dev, offset, &read_value, sizeof(uint32_t)) != 0) {
-            printk("Flash read failed at offset 0x%X\n", offset);
-            return; // Handle error
-        }
-        *ram_ptr = read_value; // Restore value to RAM
-    }
 
     // I/O data
 
 }
 
 int set_program_state(uint32_t * buf) {
-    uint32_t *ram_start = &_sram_data_start;
-    uint32_t *ram_end = &_sram_data_end;
-    uint32_t ram_size = (uint32_t)ram_end - (uint32_t)ram_start;
-    uint32_t offset = RAM_STORAGE_OFFSET; // Offset in flash where RAM data should be stored
-
     // Register data
     for (int i = 0; i <= 12; ++i) {
         __asm__ volatile("MOV R%d, %0\n":  "r" (i) :"=r" (buf[i]) : );
@@ -85,14 +67,38 @@ int set_program_state(uint32_t * buf) {
     __asm__ volatile("MRS PC, %0\n": : "=r" (buf[16]) : );
 
     // RAM data
+    
+    // I/O data
+}
+
+int save_ram_to_flash() {
+    uint32_t *ram_start = &_sram_data_start;
+    uint32_t *ram_end = &_sram_data_end;
+    uint32_t ram_size = (uint32_t)ram_end - (uint32_t)ram_start;
+    uint32_t offset = RAM_STORAGE_OFFSET; // Offset in flash where RAM data should be stored
+
     for (uint32_t *ram_ptr = ram_start; ram_ptr < ram_end; ram_ptr++, offset += sizeof(uint32_t)) {
         if (flash_write(flash_dev, offset, ram_ptr, sizeof(uint32_t)) != 0) {
             printk("Flash write failed at offset 0x%X\n", offset);
-            return; // Handle error
+            return -1;
         }
     }
-    
-    // I/O data
+}
+
+int retrieve_ram_from_flash() {
+    uint32_t *ram_start = &_sram_data_start;
+    uint32_t *ram_end = &_sram_data_end;
+    uint32_t offset = RAM_STORAGE_OFFSET; // Offset in flash where RAM data is stored
+
+    // Loop through the flash storage and restore it to RAM
+    for (uint32_t *ram_ptr = ram_start; ram_ptr < ram_end; ram_ptr++, offset += sizeof(uint32_t)) {
+        uint32_t read_value;
+        if (flash_read(flash_dev, offset, &read_value, sizeof(uint32_t)) != 0) {
+            printk("Flash read failed at offset 0x%X\n", offset);
+            return -1; 
+        }
+        *ram_ptr = read_value; // Restore value to RAM
+    }
 }
 
 int checkpoint_test_flash() {
