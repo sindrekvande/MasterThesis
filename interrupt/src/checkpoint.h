@@ -18,6 +18,9 @@
 #define FLASH_PAGE_SIZE   4096
 #define CHECKPOINT_WORDS    17
 
+#define RAM_START   0x20000008
+#define RAM_END     0x20008008 //vet ikke om dette er riktig
+
 /**
  * @brief Creates checkpoint for current tasks.
  * 
@@ -54,3 +57,7 @@ int get_program_state(uint32_t * buf);
  * @return int 
  */
 int set_program_state(uint32_t * buf);
+
+int save_ram_to_flash();
+
+int retrieve_ram_from_flash();

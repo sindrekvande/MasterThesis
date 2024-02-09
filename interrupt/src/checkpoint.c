@@ -71,6 +71,14 @@ int set_program_state(uint32_t * buf) {
     // I/O data
 }
 
+int save_ram_to_flash() {
+    
+}
+
+int retrieve_ram_from_flash() {
+
+}
+
 int checkpoint_test_flash() {
     uint32_t before[CHECKPOINT_WORDS] = {0};
     get_program_state(before);
