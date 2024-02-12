@@ -29,32 +29,31 @@ class states:
     self.measureCurrent       = 8 * 10 ** -3
     self.communicateCurrent   = 9 * 10 ** -3
     self.sleepCurrent         = 1.9 * 10 ** -6
-    def __init__(self, measTime, comTime, sleepTime):
+    def __init__(self, measTime, comTime, sleepTime, capacitor: energyStorage):
         self.measTime   = measTime
         self.comTime    = comTime
         self.sleepTime  = sleepTime
 
     def measure(self):
-        energyUsage = self.measureCurrent * self.measTime
-        return energyUsage
+        capacitor.useEnergy(self.measureCurrent * self.measTime)
         
     def communicate(self):
-        energyUsage = self.communicationCurrent * self.comTime
-        return energyUsage
+        capacitor.useEnergy(self.communicationCurrent * self.comTime)
 
     def sleep(self):
-        energyUsage = self.sleepCurrent * self.sleepTime
-        return energyUsage
+        capacitor.useEnergy(self.sleepCurrent * self.sleepTime)
 
 class checkpoint:
-    def __init__(self):
+    # 58 μA/MHz running from flash memory
+    self.energyUse = 58 * 10 ** -6 * 64
+    def __init__(self, capacitor: energyStorage):
         pass
 
-    def save():
-        pass
+    def save(timeToSave):
+        capacitor.useEnergy(self.energyUse * timeToSave)
 
-    def recover():
-        pass
+    def recover(timeToRecover):
+        capacitor.useEnergy(self.energyUse * timeToRecover)
 
 def main():
     trace = fh.file("summer").brightnessDF
