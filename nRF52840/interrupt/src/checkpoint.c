@@ -1,7 +1,5 @@
 #include "checkpoint.h"
 
-extern uint32_t _sram_data_start;
-extern uint32_t _sram_data_end;
 
 int checkpoint_create() {
     const struct device *flash_dev = PARTITION_DEVICE;
@@ -17,7 +15,7 @@ int checkpoint_create() {
 			printk("Flash write failed!\n");
 			return -1;
 		}
-        printk("Wrote %X at address 0x%X\n", checkpoint_data[i], offset)
+        printk("Wrote %X at address 0x%X\n", checkpoint_data[i], offset);
     }
 }
 
@@ -51,6 +49,7 @@ int get_program_state(uint32_t * buf) { // Number of stored values needs to matc
     __asm__ volatile("MRS %0, PC\n": "=r" (buf[16]) : : );
 
     // RAM data
+
 
     // I/O data
 
