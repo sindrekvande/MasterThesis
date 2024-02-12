@@ -59,7 +59,7 @@ class checkpoint:
 def main():
     trace = fh.file("summer").brightnessDF
     capacitor = energyStorage()
-    states = states()
+    states = states(0.01, 0.01, 50)
     JITsvs = checkpoint()
     JITadc = checkpoint()
     interval = checkpoint()
@@ -68,14 +68,16 @@ def main():
         capacitor.addEnergy(irrValue)
         counter = 60
         nextstate = "measure"
-            while counter > 0:
-                match nextstate:
-                    case "measure":
-                        counter -= states.measure()
-                        nextstate = "communicate"
-                    case "communicate":
-                        counter -= states.communicate()
-                        nextstate = "sleep"
-                    case "sleep":
-                        counter -= states.sleep()
-                        nextstate = "measure"
+        while counter > 0:
+            match nextstate:
+                case "measure":
+                    counter -= states.measure()
+                    nextstate = "communicate"
+                case "communicate":
+                    counter -= states.communicate()
+                    nextstate = "sleep"
+                case "sleep":
+                    counter -= states.sleep()
+                    nextstate = "measure"
+            if capacitor.energy = 0:
+                break
