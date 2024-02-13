@@ -69,8 +69,8 @@ class checkpoint:
 
 def main():
     trace = fh.file("winter").brightnessDF
-    capacitor = energyStorage(330*10**-6, 3.6)
-    state = states(0.01, 0.01, 50, capacitor)
+    capacitor = energyStorage(47*10**-3, 3.3)
+    state = states(0.01, 0.01, 59.98, capacitor)
     JITsvs = checkpoint()
     JITadc = checkpoint()
     interval = checkpoint()
@@ -112,7 +112,7 @@ def main():
                     if capacitor.voltage > thresholdStart:
                         nextstate = "recover"
                     else:
-                        break
+                        counter -= 1
         voltage.append(capacitor.voltage)
 
     plt.plot(voltage)
