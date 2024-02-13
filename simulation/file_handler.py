@@ -1,5 +1,6 @@
 import csv
 import pandas as pd
+import os
 #import import_main #LIGHT OFF
 #import parameters as pm
 #import messages as msg
@@ -16,6 +17,7 @@ inputFilePath = "datasets/"
 class file:
     def __init__(self, season):
         self.inputFile = inputFilePath + season + ".tsv"
+        self.inputFile = os.path.join(os.path.dirname(__file__), self.inputFile)
 
         self.read_from_file()
         self.filter_NaN_values()
@@ -44,7 +46,7 @@ class file:
 #        df.to_csv(self.outputFile, mode='a', index=False, header=False, sep="\t")
     
     def read_from_file(self):
-        self.brightnessDF= pd.read_csv(self.inputFile, sep='\t', usecols = ['Gg_pyr'],  dtype = float, nrows = (pm.numberOfDays*60*24)) # header=0, index_col=False,
+        self.brightnessDF= pd.read_csv(self.inputFile, sep='\t', usecols = ['Gg_pyr'],  dtype = float)#, nrows = (pm.numberOfDays*60*24)) # header=0, index_col=False,
         return self.brightnessDF
 
     def single_value(self, index):
