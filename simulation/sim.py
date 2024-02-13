@@ -14,13 +14,15 @@ class energyStorage:
     # E = (Q * V) / 2 = C*V**2 / 2
     # V = sqrt(2*E/C)
     def __init__(self, capacitance, maxVolt):
-        self.maxEnergy = 1/2 * capacitance * maxVolt
+        self.maxEnergy = 1/2 * capacitance * maxVolt**2
         self.voltage = 0
         self.energy = 0
         self.capacitance = capacitance
 
     def addEnergy(self, irr):
-        self.energy += irr * 60
+        self.energy += irr * 60 / 10000
+        if self.energy > self.maxEnergy:
+            self.energy = self.maxEnergy
         self.voltage = np.sqrt(2*self.energy/self.capacitance)
 
     def useEnergy(self, energy):
@@ -67,7 +69,7 @@ class checkpoint:
 
 def main():
     trace = fh.file("winter").brightnessDF
-    capacitor = energyStorage(47*10**-6, 3.6)
+    capacitor = energyStorage(330*10**-6, 3.6)
     state = states(0.01, 0.01, 50, capacitor)
     JITsvs = checkpoint()
     JITadc = checkpoint()
@@ -75,7 +77,7 @@ def main():
     # nRF: 1.7 V–3.6 V supply voltage range
     thresholdStart = 2.5
     thersholdStop = 1.9
-    energy = []
+    voltage = []
     # SVS
     nextstate = "measure"
     for key, irrValue in trace.itertuples():
@@ -111,9 +113,9 @@ def main():
                         nextstate = "recover"
                     else:
                         break
-        energy.append(capacitor.voltage)
+        voltage.append(capacitor.voltage)
 
-    plt.plot(energy)
+    plt.plot(voltage)
     plt.show()
 
 main()
