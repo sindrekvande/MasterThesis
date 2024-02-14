@@ -1,6 +1,7 @@
 import file_handler as fh
 import matplotlib.pyplot as plt
 import numpy as np
+from datetime import datetime as time
 # take in solar trace
 # feed solar trace to simulated energy storage
 # do work (measure, communicate, sleep) in state machine
@@ -13,14 +14,15 @@ class energyStorage:
     # C = (ε0 * A) / d
     # E = (Q * V) / 2 = C*V**2 / 2
     # V = sqrt(2*E/C)
-    def __init__(self, capacitance, maxVolt):
+    def __init__(self, timeStep, capacitance, maxVolt):
         self.maxEnergy = 1/2 * capacitance * maxVolt**2
         self.voltage = 0
         self.energy = 0
         self.capacitance = capacitance
+        self.timeStep = timeStep
 
     def addEnergy(self, irr):
-        self.energy += irr * 60 / 10000
+        self.energy += irr * self.timeStep / 10000
         if self.energy > self.maxEnergy:
             self.energy = self.maxEnergy
         self.voltage = np.sqrt(2*self.energy/self.capacitance)
@@ -38,84 +40,111 @@ class states:
     measureCurrent       = 8 * 10 ** -3
     communicateCurrent   = 9 * 10 ** -3
     sleepCurrent         = 1.9 * 10 ** -6
-    def __init__(self, measTime, comTime, sleepTime, capacitor: energyStorage):
-        self.measTime   = measTime
-        self.comTime    = comTime
-        self.sleepTime  = sleepTime
+    def __init__(self, timeStep, capacitor: energyStorage):
+        self.timeStep = timeStep
 
     def measure(self, capacitor: energyStorage):
-        capacitor.useEnergy(self.measureCurrent * self.measTime)
-        return self.measTime
+        capacitor.useEnergy(self.measureCurrent * self.timeStep)
         
     def communicate(self, capacitor: energyStorage):
-        capacitor.useEnergy(self.communicateCurrent * self.comTime)
-        return self.comTime
+        capacitor.useEnergy(self.communicateCurrent * self.timeStep)
 
     def sleep(self, capacitor: energyStorage):
-        capacitor.useEnergy(self.sleepCurrent * self.sleepTime)
-        return self.sleepTime
+        capacitor.useEnergy(self.sleepCurrent * self.timeStep)
 
 class checkpoint:
     # 58 μA/MHz running from flash memory
     energyUse = 58 * 10 ** -6 * 64
-    def __init__(self):
-        pass
+    def __init__(self, timeStep):
+        self.timeStep = timeStep
 
-    def save(self, timeToSave, capacitor: energyStorage):
-        capacitor.useEnergy(self.energyUse * timeToSave)
+    def save(self, capacitor: energyStorage):
+        capacitor.useEnergy(self.energyUse * self.timeStep)
 
-    def recover(self, timeToRecover, capacitor: energyStorage):
-        capacitor.useEnergy(self.energyUse * timeToRecover)
+    def recover(self, capacitor: energyStorage):
+        capacitor.useEnergy(self.energyUse * self.timeStep)
 
 def main():
-    trace = fh.file("winter").brightnessDF
-    capacitor = energyStorage(47*10**-3, 3.3)
-    state = states(0.01, 0.01, 59.98, capacitor)
-    JITsvs = checkpoint()
-    JITadc = checkpoint()
-    interval = checkpoint()
+    start = time.now()
+    ############## Parameters ###############
+    timeStep        = 1*10**-3  # millisecond
+    adcSamples      = 10        # 10 samples
+    btSize          = 1024      # 1kb data (should be atleast more than adcSamples*12)
+    sleepTime       = 50        # in seconds
+    numDays         = 1.5       # 
+    capacitorSize   = 10*10**-3 # in Farad
+    ########################################
+
+    trace = fh.file("winter", numDays).brightnessDF
+    capacitor = energyStorage(timeStep, capacitorSize, 3.3)
+    state = states(timeStep, capacitor)
+    JITsvs = checkpoint(timeStep)
+    JITadc = checkpoint(timeStep)
+    interval = checkpoint(timeStep)
     # nRF: 1.7 V–3.6 V supply voltage range
     thresholdStart = 2.5
-    thersholdStop = 1.9
+    thresholdStop = 1.9
     voltage = []
+    #stateTrace = [[0,0,0,0,0]]
+    #currentSate = [0,0,0,0,0]
+    #stateTrace.append(currentSate)
     # SVS
     nextstate = "measure"
+
     for key, irrValue in trace.itertuples():
-        capacitor.addEnergy(irrValue)
-        counter = 60
+        #print(irrValue)
+        counter = 60/timeStep
+        counterstart = counter
         while counter > 0:
+            capacitor.addEnergy(irrValue)
             match nextstate:
                 case "recover":
+                    #currentSate = [1,0,0,0,0]
                     nextstate = prevstate
+                    counterstart = counter
                 case "measure":
-                    counter -= state.measure(capacitor)
-                    if capacitor.voltage < thersholdStop:
+                    currentSate = [0,1,0,0,0]
+                    #state.measure(capacitor)
+                    if capacitor.voltage < thresholdStop:
                         nextstate = "sleep"
                         prevstate = "measure"
-                    else:
+                        counterstart = counter
+                    elif counterstart - counter >= adcSamples/200/timeStep:
                         nextstate = "communicate"
+                        counterstart = counter
                 case "communicate":
-                    counter -= state.communicate(capacitor)
-                    if capacitor.voltage < thersholdStop:
+                    #currentSate = [0,0,1,0,0]
+                    state.communicate(capacitor)
+                    if capacitor.voltage < thresholdStop:
                         nextstate = "sleep"
                         prevstate = "communicate"
-                    else:
+                        counterstart = counter
+                    elif counterstart - counter >= btSize/1000/timeStep:
                         nextstate = "sleep"
+                        counterstart = counter
                 case "sleep":
-                    counter -= state.sleep(capacitor)
+                    #currentSate = [0,0,0,1,0]
+                    state.sleep(capacitor)
                     if capacitor.voltage < 1.7:
                         nextstate = "dead"
                         prevstate = "sleep"
-                    else:
+                        counterstart = counter
+                    elif (capacitor.voltage > thresholdStart) and (counterstart - counter >= sleepTime/timeStep):
                         nextstate = "measure"
+                        counterstart = counter
                 case "dead":
+                    #currentSate = [0,0,0,0,1]
                     if capacitor.voltage > thresholdStart:
                         nextstate = "recover"
-                    else:
-                        counter -= 1
-        voltage.append(capacitor.voltage)
-
+                        counterstart = counter
+            counter -= 1
+            voltage.append(capacitor.voltage)
+            #stateTrace.append(currentSate)
+    
+    print("Code execution time: ", time.now() - start)
+    
     plt.plot(voltage)
+    #plt.plot(stateTrace)
     plt.show()
 
 main()

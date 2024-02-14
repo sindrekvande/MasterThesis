@@ -15,7 +15,8 @@ inputFilePath = "datasets/"
 #headers = ['time','irradiance', 'led_percent', 'SoCpacks', 'adc1.1', 'adc1.2', 'adc1.3', 'adc1.4', 'adc1.5', 'adc1.6', 'adc1.7', 'adc1.8', 'adc2.1', 'adc2.2', 'adc2.3', 'adc2.4', 'adc2.5', 'adc2.6', 'adc2.7', 'adc2.8']
 
 class file:
-    def __init__(self, season):
+    def __init__(self, season, numDays):
+        self.numDays = numDays
         self.inputFile = inputFilePath + season + ".tsv"
         self.inputFile = os.path.join(os.path.dirname(__file__), self.inputFile)
 
@@ -46,7 +47,7 @@ class file:
 #        df.to_csv(self.outputFile, mode='a', index=False, header=False, sep="\t")
     
     def read_from_file(self):
-        self.brightnessDF= pd.read_csv(self.inputFile, sep='\t', usecols = ['Gg_pyr'],  dtype = float)#, nrows = (pm.numberOfDays*60*24)) # header=0, index_col=False,
+        self.brightnessDF= pd.read_csv(self.inputFile, sep='\t', usecols = ['Gg_pyr'],  dtype = float, nrows = (self.numDays*60*24)) # header=0, index_col=False,
         return self.brightnessDF
 
     def single_value(self, index):
