@@ -37,20 +37,20 @@ class energyStorage:
         return self.energy
 
 class states:
-    measureCurrent       = 8 * 10 ** -3
-    communicateCurrent   = 9 * 10 ** -3
-    sleepCurrent         = 1.9 * 10 ** -6
+    measurePower       = 8 * 10 ** -3 * 3
+    communicatePower   = 9 * 10 ** -3 * 3
+    sleepPower         = 1.9 * 10 ** -6 * 3
     def __init__(self, timeStep, capacitor: energyStorage):
         self.timeStep = timeStep
 
     def measure(self, capacitor: energyStorage):
-        capacitor.useEnergy(self.measureCurrent * self.timeStep)
+        capacitor.useEnergy(self.measurePower * self.timeStep)
         
     def communicate(self, capacitor: energyStorage):
-        capacitor.useEnergy(self.communicateCurrent * self.timeStep)
+        capacitor.useEnergy(self.communicatePower * self.timeStep)
 
     def sleep(self, capacitor: energyStorage):
-        capacitor.useEnergy(self.sleepCurrent * self.timeStep)
+        capacitor.useEnergy(self.sleepPower * self.timeStep)
 
 class checkpoint:
     # 58 μA/MHz running from flash memory
