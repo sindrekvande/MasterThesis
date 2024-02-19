@@ -55,22 +55,22 @@ class states:
 
 class checkpoint:
     # 58 μA/MHz running from flash memory
-    energyUse = 58 * 10 ** -6 * 64
+    powerUse = 58 * 10 ** -6 * 64 * 3.3
     def __init__(self, timeStep):
         self.timeStep = timeStep
 
-    def save(self, capacitor: energyStorage):
-        capacitor.useEnergy(self.energyUse * self.timeStep)
+    def save(self, capacitor: energyStorage, timeToSave):
+        capacitor.useEnergy(self.powerUse * timeToSave)
 
-    def recover(self, capacitor: energyStorage):
-        capacitor.useEnergy(self.energyUse * self.timeStep)
+    def recover(self, capacitor: energyStorage, timeToRecover):
+        capacitor.useEnergy(self.powerUse * timeToRecover)
 
 def main():
     start = time.now()
     ############## Parameters ###############
     timeStep        = 1*10**-3  # millisecond
     adcSamples      = 10        # 10 samples
-    btSize          = 1024      # 1kb data (should be atleast more than adcSamples*12)
+    btSize          = 1024      # 1kb data (should be atleast adcSamples*12)
     sleepTime       = 60*10     # in seconds
     numDays         = 1.5       # 
     capacitorSize   = 10*10**-3 # in Farad
@@ -87,74 +87,65 @@ def main():
     thresholdStop = 1.9
     voltage = []
     irrTrace = []
-    #stateTrace = [[0,0,0,0,0]]
-    #currentSate = [0,0,0,0,0]
-    #stateTrace.append(currentSate)
     # SVS
     nextstate = "measure"
     measureCounter = adcSamples/200/timeStep
     comCounter = btSize/1000/timeStep
     sleepCounter = sleepTime/timeStep
+    checkpointed = 0
 
     for key, irrValue in trace.itertuples():
-        #print(irrValue)
         counter = 60/timeStep
-        #counterstart = counter
         irrTrace.append(irrValue/1000)
         while counter > 0:
             capacitor.addEnergy(irrValue)
             match nextstate:
                 case "recover":
-                    #currentSate = [1,0,0,0,0]
                     nextstate = prevstate
-                    #counterstart = counter
+                    JITsvs.recover(capacitor, 1)
                 case "measure":
-                    #currentSate = [0,1,0,0,0]
                     state.measure(capacitor)
                     measureCounter -= 1
                     if capacitor.voltage < thresholdStop:
                         nextstate = "sleep"
                         prevstate = "measure"
-                        #counterstart = counter
+                        JITsvs.save(capacitor, 1)
+                        checkpointed = 1
                         sleepCounter = sleepTime/timeStep
                     elif measureCounter <= 0:
                         nextstate = "communicate"
-                        #counterstart = counter
                         comCounter = btSize/1000/timeStep
+                        #########################
+                        # For ADC/interval check voltage/take checkpoint here
+                        #########################
                 case "communicate":
-                    #currentSate = [0,0,1,0,0]
                     state.communicate(capacitor)
                     comCounter -= 1
                     if capacitor.voltage < thresholdStop:
                         nextstate = "sleep"
                         prevstate = "communicate"
-                        #counterstart = counter
                         sleepCounter = sleepTime/timeStep
                     elif comCounter <= 0:
                         nextstate = "sleep"
-                        #counterstart = counter
                         sleepCounter = sleepTime/timeStep
                 case "sleep":
-                    #currentSate = [0,0,0,1,0]
                     state.sleep(capacitor)
                     sleepCounter -= 1
                     if capacitor.voltage < 1.7:
                         nextstate = "dead"
-                        prevstate = "sleep"
-                        #counterstart = counter
-                    elif (capacitor.voltage > thresholdStart) and (sleepCounter <= 0):
+                        #prevstate = "sleep"
+                    elif capacitor.voltage > thresholdStart and checkpointed:
+                        nextstate = "recover"
+                        checkpointed = 0
+                    elif (sleepCounter <= 0) and (capacitor.voltage > thresholdStart):
                         nextstate = "measure"
-                        #counterstart = counter
-                        adcSamples/200/timeStep
+                        measureCounter = adcSamples/200/timeStep
                 case "dead":
-                    #currentSate = [0,0,0,0,1]
                     if capacitor.voltage > thresholdStart:
                         nextstate = "recover"
-                        #counterstart = counter
             counter -= 1
             voltage.append(capacitor.voltage)
             irrTrace.append(irrValue/1000)
-            #stateTrace.append(currentSate)
     
     print("Code execution time: ", time.now() - start)
     
