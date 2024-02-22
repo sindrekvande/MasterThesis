@@ -93,6 +93,8 @@ def main():
     comCounter = btSize/1000/timeStep
     sleepCounter = sleepTime/timeStep
     checkpointed = 0
+    timeSaved = 0
+    timesRecovered = 0
 
     for key, irrValue in trace.itertuples():
         counter = 60/timeStep
@@ -101,6 +103,8 @@ def main():
             capacitor.addEnergy(irrValue)
             match nextstate:
                 case "recover":
+                    timesRecovered += 1
+                    timeSaved += (btSize/1000/timeStep - comCounter if comCounter > 0 else 0) + (adcSamples/200/timeStep - measureCounter if measureCounter > 0 else 0)
                     nextstate = prevstate
                     JITsvs.recover(capacitor, 1)
                 case "measure":
@@ -148,7 +152,9 @@ def main():
             irrTrace.append(irrValue/1000)
     
     print("Code execution time: ", time.now() - start)
-    
+    print("Times recovered: ", timesRecovered)
+    print("Total time saved: ", timeSaved*timeStep)
+
     plt.plot(voltage)
     plt.plot(irrTrace)
     #plt.plot(stateTrace)
