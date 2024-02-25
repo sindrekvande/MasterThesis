@@ -59,11 +59,11 @@ class checkpoint:
     def __init__(self, timeStep):
         self.timeStep = timeStep
 
-    def save(self, capacitor: energyStorage, timeToSave):
-        capacitor.useEnergy(self.powerUse * timeToSave)
+    def save(self, capacitor: energyStorage):
+        capacitor.useEnergy(self.powerUse * self.timeStep)
 
-    def recover(self, capacitor: energyStorage, timeToRecover):
-        capacitor.useEnergy(self.powerUse * timeToRecover)
+    def recover(self, capacitor: energyStorage):
+        capacitor.useEnergy(self.powerUse * self.timeStep)
 
 def main():
     start = time.now()
@@ -74,6 +74,8 @@ def main():
     sleepTime       = 60*10     # in seconds
     numDays         = 1.5       # 
     capacitorSize   = 10*10**-3 # in Farad
+    timeToSave      = 0.1
+    timeToRecover   = 0.1
     testToDo        = "all"     # svs, adc, int or all
     ########################################
 
@@ -88,7 +90,7 @@ def main():
     JITadc = checkpoint(timeStep)
     interval = checkpoint(timeStep)
     # nRF: 1.7 V–3.6 V supply voltage range
-    thresholdStart = 2.5
+    thresholdStart = 2.8
     thresholdStop = 1.9
     thresholdDead = 1.7
     voltageSVS = []
@@ -123,7 +125,16 @@ def main():
     timesRecoveredINT = 0
     prevstateINT = "measure"
     timeCheckpointedINT = 0
-    thresholdStartINT = 3.3
+    thresholdStartINT = 3.29
+
+    saveCounterSVS = timeToSave/timeStep
+    recoverCounterSVS = timeToRecover/timeStep
+
+    saveCounterADC = timeToSave/timeStep
+    recoverCounterADC = timeToRecover/timeStep
+
+    saveCounterINT = timeToSave/timeStep
+    recoverCounterINT = timeToRecover/timeStep
 
     for key, irrValue in trace.itertuples():
         counter = 60/timeStep
@@ -134,25 +145,30 @@ def main():
             capacitorINT.addEnergy(irrValue)
             match nextstateSVS:
                 case "recover":
-                    timesRecoveredSVS += 1
-                    timeSavedSVS += (adcSamples/200/timeStep + btSize/1000/timeStep - comCounterSVS if comCounterSVS > 0 else 0) + (adcSamples/200/timeStep - measureCounterSVS if measureCounterSVS > 0 else 0)
-                    nextstateSVS = prevstateSVS
-                    JITsvs.recover(capacitorSVS, 0.1)
+                    recoverCounterSVS -= 1
+                    JITsvs.recover(capacitorSVS)
+                    if recoverCounterSVS <= 0:
+                        timesRecoveredSVS += 1
+                        timeSavedSVS += (adcSamples/200/timeStep + btSize/1000/timeStep - comCounterSVS if comCounterSVS > 0 else 0) + (adcSamples/200/timeStep - measureCounterSVS if measureCounterSVS > 0 else 0)
+                        nextstateSVS = prevstateSVS
+                        recoverCounterSVS = timeToRecover/timeStep
+                case "save":
+                    saveCounterSVS -= 1
+                    JITsvs.save(capacitorSVS)
+                    if saveCounterSVS <= 0:
+                        nextstateSVS = "sleep"
+                        checkpointedSVS = 1
+                        sleepCounterSVS = sleepTime/timeStep
+                        saveCounterSVS = timeToSave/timeStep
                 case "measure":
                     stateSVS.measure(capacitorSVS)
                     measureCounterSVS -= 1
                     if capacitorSVS.voltage < thresholdStop:
-                        nextstateSVS = "sleep"
+                        nextstateSVS = "save"
                         prevstateSVS = "measure"
-                        JITsvs.save(capacitorSVS, 0.1)
-                        checkpointedSVS = 1
-                        sleepCounterSVS = sleepTime/timeStep
                     elif measureCounterSVS <= 0:
                         nextstateSVS = "communicate"
                         comCounterSVS = btSize/1000/timeStep
-                        #########################
-                        # For ADC/interval check voltage/take checkpoint here
-                        #########################
                 case "communicate":
                     stateSVS.communicate(capacitorSVS)
                     comCounterSVS -= 1
@@ -168,7 +184,6 @@ def main():
                     sleepCounterSVS -= 1
                     if capacitorSVS.voltage < thresholdDead:
                         nextstateSVS = "dead"
-                        #prevstate = "sleep"
                     elif capacitorSVS.voltage > thresholdStart and checkpointedSVS:
                         nextstateSVS = "recover"
                         checkpointedSVS = 0
@@ -181,10 +196,21 @@ def main():
             
             match nextstateADC:
                 case "recover":
-                    timesRecoveredADC += 1
-                    timeSavedADC += (adcSamples/200/timeStep)
-                    nextstateADC = prevstateADC
-                    JITadc.recover(capacitorADC, 0.1)
+                    recoverCounterADC -= 1
+                    JITadc.recover(capacitorADC)
+                    if recoverCounterADC <= 0:
+                        timesRecoveredADC += 1
+                        timeSavedADC += (adcSamples/200/timeStep)
+                        nextstateADC = prevstateADC
+                        recoverCounterADC = timeToRecover/timeStep
+                case "save":
+                    saveCounterADC -= 1
+                    JITadc.save(capacitorADC)
+                    if saveCounterADC <= 0:
+                        nextstateADC = "sleep"
+                        checkpointedADC = 1
+                        sleepCounterADC = sleepTime/timeStep
+                        saveCounterADC = timeToSave/timeStep
                 case "measure":
                     stateADC.measure(capacitorADC)
                     measureCounterADC -= 1
@@ -194,11 +220,8 @@ def main():
                         nextstateADC = "communicate"
                         comCounterADC = btSize/1000/timeStep
                         if capacitorADC.voltage < thresholdStop:
-                            nextstateADC = "sleep"
+                            nextstateADC = "save"
                             prevstateADC = "communicate"
-                            JITadc.save(capacitorADC, 0.1)
-                            checkpointedADC = 1
-                            sleepCounterADC = sleepTime/timeStep
                 case "communicate":
                     stateADC.communicate(capacitorADC)
                     comCounterADC -= 1
@@ -225,21 +248,29 @@ def main():
 
             match nextstateINT:
                 case "recover":
-                    timesRecoveredINT += 1
-                    timeSavedINT += (adcSamples/200/timeStep)
-                    nextstateINT = prevstateINT
-                    interval.recover(capacitorINT, 0.1)
+                    recoverCounterINT -= 1
+                    interval.recover(capacitorINT)
+                    if recoverCounterINT <= 0:
+                        timesRecoveredINT += 1
+                        timeSavedINT += (adcSamples/200/timeStep)
+                        nextstateINT = prevstateINT
+                        recoverCounterINT = timeToRecover/timeStep
+                case "save":
+                    saveCounterINT -= 1
+                    interval.save(capacitorINT)
+                    if saveCounterINT <= 0:
+                        nextstateINT = "communicate"
+                        comCounterINT = btSize/1000/timeStep
+                        checkpointedINT = 1
+                        timeCheckpointedINT += 1
+                        saveCounterINT = timeToSave/timeStep
                 case "measure":
                     stateINT.measure(capacitorINT)
                     measureCounterINT -= 1
                     if capacitorINT.voltage < thresholdDead:
                         nextstateINT = "dead"
                     elif measureCounterINT <= 0:
-                        nextstateINT = "communicate"
-                        comCounterINT = btSize/1000/timeStep
-                        interval.save(capacitorINT, 0.1)
-                        checkpointedINT = 1
-                        timeCheckpointedINT += 1
+                        nextstateINT = "save"
                 case "communicate":
                     stateINT.communicate(capacitorINT)
                     comCounterINT -= 1
@@ -278,7 +309,7 @@ def main():
     print("INTERVAL: ")
     print("Times checkpointed: ", timeCheckpointedINT)
     print("Times recovered: ", timesRecoveredINT)
-    print("Potetial time saved: ", timeSavedINT*timeStep, "\n")
+    print("Potential time saved: ", timeSavedINT*timeStep, "\n")
 
 
     voltageSVS = np.array(voltageSVS, dtype=np.float16)
