@@ -68,15 +68,19 @@ class checkpoint:
 def main():
     start = time.now()
     ############## Parameters ###############
-    timeStep        = 1*10**-3  # millisecond
-    adcSamples      = 10        # 10 samples
-    btSize          = 1024      # 1kb data (should be atleast adcSamples*12)
-    sleepTime       = 60*10     # in seconds
-    numDays         = 1.5       # 
-    capacitorSize   = 10*10**-3 # in Farad
-    timeToSave      = 0.1
-    timeToRecover   = 0.1
-    testToDo        = "all"     # svs, adc, int or all
+    timeStep            = 1*10**-3  # millisecond
+    adcSamples          = 10        # 10 samples
+    btSize              = 1024      # 1kb data (should be atleast adcSamples*12)
+    sleepTime           = 60*10     # in seconds
+    numDays             = 1.5       # increasing this beyond 1.5 days might need to much RAM
+    capacitorSize       = 10*10**-3 # in Farad
+    timeToSave          = 0.1
+    timeToRecover       = 0.1
+    thresholdStart      = 3.0       # nRF: 1.7 V–3.6 V supply voltage range
+    thresholdStop       = 1.9
+    thresholdDead       = 1.7
+    thresholdStartINT   = 3.29
+    #testToDo            = "all"     # svs, adc, int or all
     ########################################
 
     trace = fh.file("winter", numDays).brightnessDF
@@ -89,10 +93,7 @@ def main():
     JITsvs = checkpoint(timeStep)
     JITadc = checkpoint(timeStep)
     interval = checkpoint(timeStep)
-    # nRF: 1.7 V–3.6 V supply voltage range
-    thresholdStart = 2.8
-    thresholdStop = 1.9
-    thresholdDead = 1.7
+    
     voltageSVS = []
     voltageADC = []
     voltageINT = []
@@ -106,6 +107,7 @@ def main():
     timeSavedSVS = 0
     timesRecoveredSVS = 0
     prevstateSVS = "measure"
+    supplyCurrentSVS = 10 * 10 ** -6
 
     nextstateADC = "dead"
     measureCounterADC = adcSamples/200/timeStep
@@ -125,7 +127,7 @@ def main():
     timesRecoveredINT = 0
     prevstateINT = "measure"
     timeCheckpointedINT = 0
-    thresholdStartINT = 3.29
+    
 
     saveCounterSVS = timeToSave/timeStep
     recoverCounterSVS = timeToRecover/timeStep
@@ -144,6 +146,7 @@ def main():
             capacitorADC.addEnergy(irrValue)
             capacitorINT.addEnergy(irrValue)
             match nextstateSVS:
+                capacitorSVS.useEnergy(supplyCurrentSVS)
                 case "recover":
                     recoverCounterSVS -= 1
                     JITsvs.recover(capacitorSVS)
