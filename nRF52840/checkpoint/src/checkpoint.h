@@ -15,13 +15,14 @@
 #define PARTITION_OFFSET	FIXED_PARTITION_OFFSET(PARTITION)
 #define PARTITION_DEVICE	FIXED_PARTITION_DEVICE(PARTITION)
 
-#define FLASH_PAGE_SIZE   4096
-#define CHECKPOINT_WORDS    17
+#define FLASH_PAGE_SIZE   4096 // Correct
+#define CHECKPOINT_WORDS    17 // Number of registers
 
-#define RAM_STORAGE_OFFSET 0x00020000
+#define RAM_AND_FLASH_OFFSET 0x00001000 // Correct
 
-#define RAM_START   0x20000008
-#define RAM_END     0x20008008 //vet ikke om dette er riktig
+#define RAM_START   0x20000000 // Correct
+#define RAM_END     0x20000100
+//#define RAM_END     0x20038000 // Correct
 
 /**
  * @brief Creates checkpoint for current tasks.
