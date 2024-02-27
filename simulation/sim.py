@@ -15,15 +15,16 @@ class energyStorage:
     # C = (ε0 * A) / d
     # E = (Q * V) / 2 = C*V**2 / 2
     # V = sqrt(2*E/C)
-    def __init__(self, timeStep, capacitance, maxVolt):
+    def __init__(self, timeStep, capacitance, maxVolt, solarCellSize):
         self.maxEnergy = 1/2 * capacitance * maxVolt**2
         self.voltage = 0
         self.energy = 0
         self.capacitance = capacitance
         self.timeStep = timeStep
+        self.solarCellSize = solarCellSize
 
     def addEnergy(self, irr):
-        self.energy += irr * self.timeStep / 10000 * 4 # For 4cm^2 solar cell
+        self.energy += irr * self.timeStep / 10000 * self.solarCellSize
         if self.energy > self.maxEnergy:
             self.energy = self.maxEnergy
         self.voltage = np.sqrt(2*self.energy/self.capacitance)
@@ -69,11 +70,13 @@ def main():
     start = time.now()
     ############## Parameters ###############
     timeStep            = 1*10**-3  # millisecond
-    adcSamples          = 200        # 10 samples
-    btSize              = 1024      # 1kb data (should be atleast adcSamples*12)
+    adcSamples          = 2000      # 200 samples per second
+    btSize              = adcSamples*12      # should be atleast adcSamples*12
     sleepTime           = 60*10     # in seconds
-    numDays             = 1.5       # increasing this beyond 1.5 days might need to much RAM
-    capacitorSize       = 10*10**-3 # in Farad
+    numDays             = 1.0       # increasing this beyond 1.5 days might need to much RAM
+    capacitorSize       = 22*10**-3 # in Farad
+    solarCellSize       = 4         # in cm^2
+    maxVoltageOut       = 3.3
     timeToSave          = 0.1
     timeToRecover       = 0.1
     thresholdStart      = 3.2       # nRF: 1.7 V–3.6 V supply voltage range
@@ -84,9 +87,9 @@ def main():
     ########################################
 
     trace = fh.file("winter", numDays).brightnessDF
-    capacitorSVS = energyStorage(timeStep, capacitorSize, 3.3)
-    capacitorADC = energyStorage(timeStep, capacitorSize, 3.3)
-    capacitorINT = energyStorage(timeStep, capacitorSize, 3.3)
+    capacitorSVS = energyStorage(timeStep, capacitorSize, maxVoltageOut, solarCellSize)
+    capacitorADC = energyStorage(timeStep, capacitorSize, maxVoltageOut, solarCellSize)
+    capacitorINT = energyStorage(timeStep, capacitorSize, maxVoltageOut, solarCellSize)
     stateSVS = states(timeStep, capacitorSVS)
     stateADC = states(timeStep, capacitorADC)
     stateINT = states(timeStep, capacitorINT)
@@ -101,7 +104,7 @@ def main():
     # SVS
     nextstateSVS = "dead"
     measureCounterSVS = adcSamples/200/timeStep
-    comCounterSVS = btSize/1000/timeStep
+    comCounterSVS = btSize/1000000/timeStep
     sleepCounterSVS = sleepTime/timeStep
     checkpointedSVS = 0
     timeSavedSVS = 0
@@ -113,7 +116,7 @@ def main():
 
     nextstateADC = "dead"
     measureCounterADC = adcSamples/200/timeStep
-    comCounterADC = btSize/1000/timeStep
+    comCounterADC = btSize/1000000/timeStep
     sleepCounterADC = sleepTime/timeStep
     checkpointedADC = 0
     timeSavedADC = 0
@@ -124,7 +127,7 @@ def main():
 
     nextstateINT = "dead"
     measureCounterINT = adcSamples/200/timeStep
-    comCounterINT = btSize/1000/timeStep
+    comCounterINT = btSize/1000000/timeStep
     sleepCounterINT = sleepTime/timeStep
     checkpointedINT = 0
     timeSavedINT = 0
@@ -150,17 +153,18 @@ def main():
             capacitorSVS.addEnergy(irrValue)
             capacitorADC.addEnergy(irrValue)
             capacitorINT.addEnergy(irrValue)
-
-            capacitorSVS.useEnergy(supplyCurrentSVS*timeStep*2.2)
+            if capacitorSVS.voltage > thresholdDead:
+                capacitorSVS.useEnergy(supplyCurrentSVS*timeStep*2.2)
             match nextstateSVS:
                 case "recover":
                     recoverCounterSVS -= 1
                     JITsvs.recover(capacitorSVS)
                     if recoverCounterSVS <= 0:
                         timesRecoveredSVS += 1
-                        timeSavedSVS += (adcSamples/200/timeStep + btSize/1000/timeStep - comCounterSVS if comCounterSVS > 0 else 0) + (adcSamples/200/timeStep - measureCounterSVS if measureCounterSVS > 0 else 0)
+                        timeSavedSVS += (adcSamples/200/timeStep + btSize/1000000/timeStep - comCounterSVS if comCounterSVS > 0 else 0) + (adcSamples/200/timeStep - measureCounterSVS if measureCounterSVS > 0 else 0)
                         nextstateSVS = prevstateSVS
                         recoverCounterSVS = timeToRecover/timeStep
+                        comCounterSVS = btSize/1000000/timeStep
                 case "save":
                     saveCounterSVS -= 1
                     JITsvs.save(capacitorSVS)
@@ -178,14 +182,15 @@ def main():
                     elif measureCounterSVS <= 0:
                         timesMeasuredSVS += 1
                         nextstateSVS = "communicate"
-                        comCounterSVS = btSize/1000/timeStep
+                        comCounterSVS = btSize/1000000/timeStep
                 case "communicate":
                     stateSVS.communicate(capacitorSVS)
                     comCounterSVS -= 1
                     if capacitorSVS.voltage < thresholdStop:
                         nextstateSVS = "sleep"
                         prevstateSVS = "communicate"
-                        sleepCounterSVS = sleepTime/timeStep
+                        #sleepCounterSVS = sleepTime/timeStep
+                        checkpointedSVS = 1
                     elif comCounterSVS <= 0:
                         timesCommunicatedSVS += 1
                         nextstateSVS = "sleep"
@@ -214,6 +219,7 @@ def main():
                         timeSavedADC += (adcSamples/200/timeStep)
                         nextstateADC = prevstateADC
                         recoverCounterADC = timeToRecover/timeStep
+                        comCounterADC = btSize/1000000/timeStep
                 case "save":
                     saveCounterADC -= 1
                     JITadc.save(capacitorADC)
@@ -229,7 +235,7 @@ def main():
                         nextstateADC = "dead"
                     elif measureCounterADC <= -5: # Added measurements for input voltage
                         nextstateADC = "communicate"
-                        comCounterADC = btSize/1000/timeStep
+                        comCounterADC = btSize/1000000/timeStep
                         timesMeasuredADC += 1
                         if capacitorADC.voltage < thresholdStop:
                             nextstateADC = "save"
@@ -273,7 +279,7 @@ def main():
                     interval.save(capacitorINT)
                     if saveCounterINT <= 0:
                         nextstateINT = "communicate"
-                        comCounterINT = btSize/1000/timeStep
+                        comCounterINT = btSize/1000000/timeStep
                         checkpointedINT = 1
                         timeCheckpointedINT += 1
                         saveCounterINT = timeToSave/timeStep

@@ -1,6 +1,7 @@
 import csv
 import pandas as pd
 import os
+import numpy as np
 #import import_main #LIGHT OFF
 #import parameters as pm
 #import messages as msg
@@ -47,7 +48,8 @@ class file:
 #        df.to_csv(self.outputFile, mode='a', index=False, header=False, sep="\t")
     
     def read_from_file(self):
-        self.brightnessDF= pd.read_csv(self.inputFile, sep='\t', usecols = ['Gg_pyr'],  dtype = float, nrows = (self.numDays*60*24)) # header=0, index_col=False,
+        rowlist = np.arange(start=1, stop=200, step=1)
+        self.brightnessDF= pd.read_csv(self.inputFile, sep='\t', usecols = ['Gg_pyr'],  dtype = np.float16, nrows = (self.numDays*60*24), skiprows=rowlist) # header=0, index_col=False,
         return self.brightnessDF
 
     def single_value(self, index):
