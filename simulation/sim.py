@@ -216,7 +216,7 @@ def main():
                     JITadc.recover(capacitorADC)
                     if recoverCounterADC <= 0:
                         timesRecoveredADC += 1
-                        timeSavedADC += (adcSamples/200/timeStep if comCounterSVS > 0 else 0)
+                        timeSavedADC += (adcSamples/200/timeStep if comCounterADC > 0 else 0)
                         nextstateADC = prevstateADC
                         recoverCounterADC = timeToRecover/timeStep
                         comCounterADC = btSize/1000000/timeStep
