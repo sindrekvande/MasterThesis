@@ -77,7 +77,7 @@ def main():
     capacitorSize       = 22*10**-3 # in Farad
     solarCellSize       = 4         # in cm^2
     maxVoltageOut       = 3.3
-    timeToSave          = 0.1
+    timeToSave          = 0.1       # should reflect 64kB RAM to flash write at 64MHz
     timeToRecover       = 0.1
     thresholdStart      = 3.2       # nRF: 1.7 V–3.6 V supply voltage range
     thresholdStop       = 1.9
@@ -132,7 +132,7 @@ def main():
     checkpointedINT = 0
     timeSavedINT = 0
     timesRecoveredINT = 0
-    prevstateINT = "measure"
+    prevstateINT = "sleep"
     timeCheckpointedINT = 0
     timesMeasuredINT = 0
     timesCommunicatedINT = 0
@@ -216,10 +216,11 @@ def main():
                     JITadc.recover(capacitorADC)
                     if recoverCounterADC <= 0:
                         timesRecoveredADC += 1
-                        timeSavedADC += (adcSamples/200/timeStep)
+                        timeSavedADC += (adcSamples/200/timeStep if comCounterSVS > 0 else 0)
                         nextstateADC = prevstateADC
                         recoverCounterADC = timeToRecover/timeStep
                         comCounterADC = btSize/1000000/timeStep
+                        measureCounterADC = adcSamples/200/timeStep
                 case "save":
                     saveCounterADC -= 1
                     JITadc.save(capacitorADC)
@@ -249,6 +250,9 @@ def main():
                         nextstateADC = "sleep"
                         sleepCounterADC = sleepTime/timeStep
                         timesCommunicatedADC += 1
+                        if capacitorADC.voltage < thresholdStop:
+                            nextstateADC = "save"
+                            prevstateADC = "measure"
                 case "sleep":
                     stateADC.sleep(capacitorADC)
                     sleepCounterADC -= 1
@@ -271,18 +275,24 @@ def main():
                     interval.recover(capacitorINT)
                     if recoverCounterINT <= 0:
                         timesRecoveredINT += 1
-                        timeSavedINT += (adcSamples/200/timeStep)
+                        timeSavedINT += (adcSamples/200/timeStep if comCounterINT > 0 else 0)
                         nextstateINT = prevstateINT
                         recoverCounterINT = timeToRecover/timeStep
                 case "save":
                     saveCounterINT -= 1
                     interval.save(capacitorINT)
                     if saveCounterINT <= 0:
-                        nextstateINT = "communicate"
-                        comCounterINT = btSize/1000000/timeStep
                         checkpointedINT = 1
                         timeCheckpointedINT += 1
                         saveCounterINT = timeToSave/timeStep
+                        if prevstateINT == "measure":
+                            nextstateINT = "communicate"
+                            comCounterINT = btSize/1000000/timeStep
+                            prevstateINT == "communicate"
+                        else:
+                            nextstateINT = "sleep"
+                            prevstateINT == "measure"
+                            sleepCounterINT = sleepTime/timeStep
                 case "measure":
                     stateINT.measure(capacitorINT)
                     measureCounterINT -= 1
@@ -290,6 +300,7 @@ def main():
                         nextstateINT = "dead"
                     elif measureCounterINT <= 0:
                         nextstateINT = "save"
+                        prevstateINT = "measure"
                         timesMeasuredINT += 1
                 case "communicate":
                     stateINT.communicate(capacitorINT)
@@ -297,8 +308,8 @@ def main():
                     if capacitorINT.voltage < thresholdDead:
                         nextstateINT = "dead"
                     elif comCounterINT <= 0:
-                        nextstateINT = "sleep"
-                        sleepCounterINT = sleepTime/timeStep
+                        nextstateINT = "save"
+                        prevstateINT = "communicate"
                         timesCommunicatedINT += 1
                 case "sleep":
                     stateINT.sleep(capacitorINT)
