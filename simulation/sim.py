@@ -288,10 +288,10 @@ def main():
                         if prevstateINT == "measure":
                             nextstateINT = "communicate"
                             comCounterINT = btSize/1000000/timeStep
-                            prevstateINT == "communicate"
+                            prevstateINT = "communicate"
                         else:
                             nextstateINT = "sleep"
-                            prevstateINT == "measure"
+                            prevstateINT = "measure"
                             sleepCounterINT = sleepTime/timeStep
                 case "measure":
                     stateINT.measure(capacitorINT)

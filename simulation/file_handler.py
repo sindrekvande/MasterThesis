@@ -49,7 +49,7 @@ class file:
     
     def read_from_file(self):
         rowlist = np.arange(start=1, stop=200, step=1)
-        self.brightnessDF= pd.read_csv(self.inputFile, sep='\t', usecols = ['Gg_pyr'],  dtype = np.float16, nrows = (self.numDays*60*24), skiprows=rowlist) # header=0, index_col=False,
+        self.brightnessDF= pd.read_csv(self.inputFile, sep='\t', usecols = ['Gg_pyr'],  dtype = np.float32, nrows = (self.numDays*60*24))#, skiprows=rowlist) # header=0, index_col=False,
         return self.brightnessDF
 
     def single_value(self, index):
