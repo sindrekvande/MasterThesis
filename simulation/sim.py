@@ -73,8 +73,8 @@ def main():
     adcSamples          = 2000      # 200 samples per second
     btSize              = adcSamples*12      # should be atleast adcSamples*12
     sleepTime           = 60*10     # in seconds
-    numDays             = 1.0       # increasing this beyond 1.5 days might need to much RAM
-    capacitorSize       = 22*10**-3 # in Farad
+    numDays             = 11       # which day of the month
+    capacitorSize       = 147*10**-3 # in Farad
     solarCellSize       = 4         # in cm^2
     maxVoltageOut       = 3.3
     timeToSave          = 0.1       # should reflect 64kB RAM to flash write at 64MHz
@@ -83,10 +83,11 @@ def main():
     thresholdStop       = 1.9
     thresholdDead       = 1.7
     thresholdStartINT   = thresholdStart
+    season              = 'summer'
     #testToDo            = "all"     # svs, adc, int or all
     ########################################
 
-    trace = fh.file("winter", numDays).brightnessDF
+    trace = fh.file(season, numDays).brightnessDF
     capacitorSVS = energyStorage(timeStep, capacitorSize, maxVoltageOut, solarCellSize)
     capacitorADC = energyStorage(timeStep, capacitorSize, maxVoltageOut, solarCellSize)
     capacitorINT = energyStorage(timeStep, capacitorSize, maxVoltageOut, solarCellSize)
@@ -111,6 +112,7 @@ def main():
     timesRecoveredSVS = 0
     prevstateSVS = "measure"
     supplyCurrentSVS = 0.8 * 10 ** -6
+    timeCheckpointedSVS = 0
     timesMeasuredSVS = 0
     timesCommunicatedSVS = 0
 
@@ -121,7 +123,8 @@ def main():
     checkpointedADC = 0
     timeSavedADC = 0
     timesRecoveredADC = 0
-    prevstateADC = "measure"
+    prevstateADC = "sleep"
+    timeCheckpointedADC = 0
     timesMeasuredADC = 0
     timesCommunicatedADC = 0
 
@@ -173,6 +176,7 @@ def main():
                         checkpointedSVS = 1
                         sleepCounterSVS = sleepTime/timeStep
                         saveCounterSVS = timeToSave/timeStep
+                        timeCheckpointedSVS += 1
                 case "measure":
                     stateSVS.measure(capacitorSVS)
                     measureCounterSVS -= 1
@@ -226,9 +230,9 @@ def main():
                     JITadc.save(capacitorADC)
                     if saveCounterADC <= 0:
                         nextstateADC = "sleep"
-                        checkpointedADC = 1
                         sleepCounterADC = sleepTime/timeStep
                         saveCounterADC = timeToSave/timeStep
+                        timeCheckpointedADC += 1
                 case "measure":
                     stateADC.measure(capacitorADC)
                     measureCounterADC -= 1
@@ -241,24 +245,28 @@ def main():
                         if capacitorADC.voltage < thresholdStop:
                             nextstateADC = "save"
                             prevstateADC = "communicate"
+                            checkpointedADC = 1
                 case "communicate":
-                    stateADC.communicate(capacitorADC)
+                    if comCounterADC > 0:
+                        stateADC.communicate(capacitorADC)
                     comCounterADC -= 1
                     if capacitorADC.voltage < thresholdDead:
                         nextstateADC = "dead"
                     elif comCounterADC <= 0:
-                        nextstateADC = "sleep"
-                        sleepCounterADC = sleepTime/timeStep
-                        timesCommunicatedADC += 1
-                        if capacitorADC.voltage < thresholdStop:
-                            nextstateADC = "save"
-                            prevstateADC = "measure"
+                        stateADC.measure(capacitorADC)
+                        if comCounterADC <= -5:
+                            nextstateADC = "sleep"
+                            sleepCounterADC = sleepTime/timeStep
+                            timesCommunicatedADC += 1
+                            if capacitorADC.voltage < thresholdStop:
+                                nextstateADC = "save"
+                                prevstateADC = "measure"
                 case "sleep":
                     stateADC.sleep(capacitorADC)
                     sleepCounterADC -= 1
                     if capacitorADC.voltage < thresholdDead:
                         nextstateADC = "dead"
-                        #prevstate = "sleep"
+                        prevstateADC = "sleep"
                     elif capacitorADC.voltage > thresholdStart and checkpointedADC:
                         nextstateADC = "recover"
                         checkpointedADC = 0
@@ -327,16 +335,18 @@ def main():
             voltageSVS.append(capacitorSVS.voltage)
             voltageADC.append(capacitorADC.voltage)
             voltageINT.append(capacitorINT.voltage)
-            irrTrace.append(irrValue/1000)
+            irrTrace.append(irrValue)
     
     print("Code execution time: ", time.now() - start, "\n")
     print("SVS: ")
+    print("Times checkpointed: ", timeCheckpointedSVS)
     print("Times recovered: ", timesRecoveredSVS)
     print("Times measured: ", timesMeasuredSVS)
     print("Times communicated: ", timesCommunicatedSVS)
     print("Potential time saved: ", timeSavedSVS*timeStep, "\n")
 
     print("ADC: ")
+    print("Times checkpointed: ", timeCheckpointedADC)
     print("Times recovered: ", timesRecoveredADC)
     print("Times measured: ", timesMeasuredADC)
     print("Times communicated: ", timesCommunicatedADC)
@@ -349,16 +359,49 @@ def main():
     print("Times communicated: ", timesCommunicatedINT)
     print("Potential time saved: ", timeSavedINT*timeStep, "\n")
 
-
-    voltageSVS = np.array(voltageSVS, dtype=np.float16)
-    voltageADC = np.array(voltageADC, dtype=np.float16)
-    voltageINT = np.array(voltageINT, dtype=np.float16)
-    plt.plot(voltageINT, label='Interval')
-    plt.plot(voltageADC, label='ADC')
-    plt.plot(voltageSVS, label='SVS')
-    plt.plot(irrTrace, label='solar trace')
+    timeAxis = np.linspace(start=0, stop=24, num=len(voltageSVS))
+    timeAxisTicks = np.arange(0, 24, step=1)
+    
+    voltageSVS = np.array(voltageSVS, dtype=np.float32)
+    voltageADC = np.array(voltageADC, dtype=np.float32)
+    voltageINT = np.array(voltageINT, dtype=np.float32)
+    fig = plt.figure(figsize=(16,9))
+    gs = fig.add_gridspec(4, hspace=0)
+    ax = gs.subplots(sharex=True, sharey=False)
+    ax[0].plot(timeAxis, voltageINT, label='Interval')
+    #ax[0].set_title('Interval')
+    ax[0].set(ylabel='Voltage [V]', xticks=timeAxisTicks)
+    ax[0].legend(loc="upper right")
+    ax[0].margins(x=0)
+    ax[0].axhline(thresholdStart, color='green', ls='--')
+    ax[0].axhline(thresholdStop, color='orange', ls='--')
+    ax[0].axhline(thresholdDead, color='red', ls='--')
+    ax[1].plot(timeAxis, voltageADC, label='ADC')
+    #ax[1].set_title('ADC')
+    ax[1].set(ylabel='Voltage [V]', xticks=timeAxisTicks)
+    ax[1].legend(loc="upper right")
+    ax[1].margins(x=0)
+    ax[1].axhline(thresholdStart, color='green', ls='--')
+    ax[1].axhline(thresholdStop, color='orange', ls='--')
+    ax[1].axhline(thresholdDead, color='red', ls='--')
+    ax[2].plot(timeAxis, voltageSVS, label='SVS')
+    #ax[2].set_title('SVS')
+    ax[2].set(ylabel='Voltage [V]', xticks=timeAxisTicks)
+    ax[2].legend(loc="upper right")
+    ax[2].margins(x=0)
+    ax[2].axhline(thresholdStart, color='green', ls='--')
+    ax[2].axhline(thresholdStop, color='orange', ls='--')
+    ax[2].axhline(thresholdDead, color='red', ls='--')
+    ax[3].plot(timeAxis, irrTrace, label='Solar trace', color=('#ffae49' if season=='summer' else '#44a5c2' if season =='autumn' else '#024b7a'))
+    #ax[3].set_title('Solar trace')
+    ax[3].set(xlabel='Time of day', ylabel='Solar irradiance [W/m$^2$]', xticks=timeAxisTicks, ylim=[-10,1300])
+    ax[3].legend(loc="upper right")
+    ax[3].margins(x=0)
+    fig.tight_layout()
     #plt.legend(loc='best', bbox_to_anchor=(0.5, 0., 0.5, 0.5), ncols=2)
     #plt.plot(stateTrace)
+    print('simulation/results/sim_'+str(season)+str(numDays)+'_'+str(int(capacitorSize*1000))+'mF'+'_adc'+str(adcSamples)+'_sleep'+str(sleepTime)+'_start'+str(thresholdStart)+'_stop'+str(thresholdStop)+'_dead'+str(thresholdDead)+'.svg')
     plt.show()
+    #plt.savefig('simulation/results/sim_'+season+numDays+'_'+(int)(capacitorSize*1000)+'mF'+'_adc'+adcSamples+'_sleep'+sleepTime+'_start'+thresholdStart+'_stop'+thresholdStop+'_dead'+thresholdDead+'.svg', bbox_inches="tight")
 
 main()
