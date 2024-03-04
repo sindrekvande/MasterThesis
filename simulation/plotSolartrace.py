@@ -3,9 +3,9 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 
-trace = fh.file("summer", 31).brightnessDF
-trace2 = fh.file("autumn", 31).brightnessDF
-trace3 = fh.file("winter", 31).brightnessDF
+trace = fh.file("summer", 2).brightnessDF
+trace2 = fh.file("autumn", 14).brightnessDF
+trace3 = fh.file("winter", 11).brightnessDF
 
 x = []
 x2 = []
@@ -19,13 +19,18 @@ for _, irr in trace2.itertuples():
 for _, irr in trace3.itertuples():
     x3.append(irr)
 
-time = np.linspace(start=0.5, stop=31.5, num=len(x))
+time = np.linspace(start=0, stop=24, num=len(x))
 
-
-plt.plot(time, x)
-plt.plot(time, x2)
-plt.plot(time, x3)
-plt.xticks(np.arange(1, 32, step=1))
-plt.legend(['Summer', 'Autumn', 'Winter'])
+fig = plt.figure(figsize=(9,5))
+#plt.plot(time, x, label='Summer', color='#ffae49')
+#plt.plot(time, x2, label='Autumn', color='#44a5c2')
+plt.plot(time, x3, label='Winter', color='#024b7a')
+plt.xticks(np.arange(0, 24, step=1))
+plt.xlabel('Time of the day')
+plt.ylabel('Solar irradiance [W/m$^2$]')
+plt.ylim(-10, 1300)
+plt.legend()
 plt.margins(x=0)
-plt.show()
+#fig.tight_layout()
+plt.savefig('simulation/results/solarTraceWinter11.svg', bbox_inches="tight")
+#plt.show()
