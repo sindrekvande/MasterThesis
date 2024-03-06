@@ -71,19 +71,19 @@ def main():
     ############## Parameters ###############
     timeStep            = 1*10**-3  # millisecond
     adcSamples          = 2000      # 200 samples per second
-    btSize              = adcSamples*12      # should be atleast adcSamples*12
-    sleepTime           = 60*10     # in seconds
-    numDays             = 11       # which day of the month
-    capacitorSize       = 147*10**-3 # in Farad
-    solarCellSize       = 4         # in cm^2
+    btSize              = adcSamples*12      # should be atleast adcSamples*122
+    sleepTime           = 60*1     # in seconds
+    numDays             = 20        # which day of the month
+    capacitorSize       = 205*10**-3 # in Farad
+    solarCellSize       = 15         # in cm^2
     maxVoltageOut       = 3.3
     timeToSave          = 0.1       # should reflect 64kB RAM to flash write at 64MHz
     timeToRecover       = 0.1
-    thresholdStart      = 3.2       # nRF: 1.7 V–3.6 V supply voltage range
+    thresholdStart      = 2.7       # nRF: 1.7 V–3.6 V supply voltage range
     thresholdStop       = 1.9
     thresholdDead       = 1.7
     thresholdStartINT   = thresholdStart
-    season              = 'summer'
+    season              = 'winter'
     #testToDo            = "all"     # svs, adc, int or all
     ########################################
 
@@ -400,8 +400,8 @@ def main():
     fig.tight_layout()
     #plt.legend(loc='best', bbox_to_anchor=(0.5, 0., 0.5, 0.5), ncols=2)
     #plt.plot(stateTrace)
-    print('simulation/results/sim_'+str(season)+str(numDays)+'_'+str(int(capacitorSize*1000))+'mF'+'_adc'+str(adcSamples)+'_sleep'+str(sleepTime)+'_start'+str(thresholdStart)+'_stop'+str(thresholdStop)+'_dead'+str(thresholdDead)+'.svg')
-    plt.show()
-    #plt.savefig('simulation/results/sim_'+season+numDays+'_'+(int)(capacitorSize*1000)+'mF'+'_adc'+adcSamples+'_sleep'+sleepTime+'_start'+thresholdStart+'_stop'+thresholdStop+'_dead'+thresholdDead+'.svg', bbox_inches="tight")
+    print('simulation/results/sim_'+str(season)+str(numDays)+'_'+str(int(capacitorSize*1000))+'mF'+'_adc'+str(adcSamples)+'_sleep'+str(sleepTime)+'_start'+str(thresholdStart)+'_stop'+str(thresholdStop)+'.svg')
+    #plt.show()
+    plt.savefig('simulation/results/sim_'+str(season)+str(numDays)+'_'+str(int(capacitorSize*1000))+'mF'+'_adc'+str(adcSamples)+'_sleep'+str(sleepTime)+'_start'+str(thresholdStart)+'_stop'+str(thresholdStop)+'.svg', bbox_inches="tight")
 
 main()
