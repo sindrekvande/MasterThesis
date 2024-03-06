@@ -70,17 +70,17 @@ def main():
     start = time.now()
     ############## Parameters ###############
     timeStep            = 1*10**-3  # millisecond
-    adcSamples          = 2000      # 200 samples per second
+    adcSamples          = 1000      # 200 samples per second
     btSize              = adcSamples*12      # should be atleast adcSamples*122
-    sleepTime           = 60*1     # in seconds
+    sleepTime           = 30     # in seconds
     numDays             = 20        # which day of the month
-    capacitorSize       = 205*10**-3 # in Farad
+    capacitorSize       = 22*10**-3 # in Farad
     solarCellSize       = 15         # in cm^2
     maxVoltageOut       = 3.3
     timeToSave          = 0.1       # should reflect 64kB RAM to flash write at 64MHz
     timeToRecover       = 0.1
-    thresholdStart      = 2.7       # nRF: 1.7 V–3.6 V supply voltage range
-    thresholdStop       = 1.9
+    thresholdStart      = 3.2       # nRF: 1.7 V–3.6 V supply voltage range
+    thresholdStop       = 2.2
     thresholdDead       = 1.7
     thresholdStartINT   = thresholdStart
     season              = 'winter'
@@ -229,10 +229,15 @@ def main():
                     saveCounterADC -= 1
                     JITadc.save(capacitorADC)
                     if saveCounterADC <= 0:
-                        nextstateADC = "sleep"
-                        sleepCounterADC = sleepTime/timeStep
                         saveCounterADC = timeToSave/timeStep
                         timeCheckpointedADC += 1
+                        if prevstateADC == "communicate":
+                            nextstateADC = "sleep"
+                            prevstateADC = "communicate"
+                        else:
+                            nextstateADC = "sleep"
+                            #prevstateADC = "measure"
+                            sleepCounterADC = sleepTime/timeStep
                 case "measure":
                     stateADC.measure(capacitorADC)
                     measureCounterADC -= 1
@@ -286,6 +291,8 @@ def main():
                         timeSavedINT += (adcSamples/200/timeStep if comCounterINT > 0 else 0)
                         nextstateINT = prevstateINT
                         recoverCounterINT = timeToRecover/timeStep
+                        comCounterINT = btSize/1000000/timeStep
+                        measureCounterINT = adcSamples/200/timeStep
                 case "save":
                     saveCounterINT -= 1
                     interval.save(capacitorINT)
@@ -295,7 +302,6 @@ def main():
                         saveCounterINT = timeToSave/timeStep
                         if prevstateINT == "measure":
                             nextstateINT = "communicate"
-                            comCounterINT = btSize/1000000/timeStep
                             prevstateINT = "communicate"
                         else:
                             nextstateINT = "sleep"
