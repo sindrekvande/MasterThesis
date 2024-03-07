@@ -70,16 +70,16 @@ def main():
     start = time.now()
     ############## Parameters ###############
     timeStep            = 1*10**-3  # millisecond
-    adcSamples          = 1000      # 200 samples per second
+    adcSamples          = 6000      # 200 samples per second
     btSize              = adcSamples*12      # should be atleast adcSamples*122
-    sleepTime           = 30     # in seconds
-    numDays             = 20        # which day of the month
-    capacitorSize       = 22*10**-3 # in Farad
+    sleepTime           = 60*5     # in seconds
+    numDays             = 3        # which day of the month
+    capacitorSize       = 205*10**-3 # in Farad
     solarCellSize       = 15         # in cm^2
     maxVoltageOut       = 3.3
     timeToSave          = 0.1       # should reflect 64kB RAM to flash write at 64MHz
     timeToRecover       = 0.1
-    thresholdStart      = 3.2       # nRF: 1.7 V–3.6 V supply voltage range
+    thresholdStart      = 2.9       # nRF: 1.7 V–3.6 V supply voltage range
     thresholdStop       = 2.2
     thresholdDead       = 1.7
     thresholdStartINT   = thresholdStart
@@ -231,13 +231,7 @@ def main():
                     if saveCounterADC <= 0:
                         saveCounterADC = timeToSave/timeStep
                         timeCheckpointedADC += 1
-                        if prevstateADC == "communicate":
-                            nextstateADC = "sleep"
-                            prevstateADC = "communicate"
-                        else:
-                            nextstateADC = "sleep"
-                            #prevstateADC = "measure"
-                            sleepCounterADC = sleepTime/timeStep
+                        nextstateADC = "sleep"
                 case "measure":
                     stateADC.measure(capacitorADC)
                     measureCounterADC -= 1
