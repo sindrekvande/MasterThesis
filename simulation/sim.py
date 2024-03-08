@@ -70,16 +70,16 @@ def main():
     start = time.now()
     ############## Parameters ###############
     timeStep            = 1*10**-3  # millisecond
-    adcSamples          = 6000      # 200 samples per second
+    adcSamples          = 1000      # 200 samples per second
     btSize              = adcSamples*12      # should be atleast adcSamples*122
-    sleepTime           = 60*5     # in seconds
+    sleepTime           = 60*10     # in seconds
     numDays             = 3        # which day of the month
-    capacitorSize       = 205*10**-3 # in Farad
+    capacitorSize       = 22*10**-3 # in Farad
     solarCellSize       = 15         # in cm^2
     maxVoltageOut       = 3.3
     timeToSave          = 0.1       # should reflect 64kB RAM to flash write at 64MHz
     timeToRecover       = 0.1
-    thresholdStart      = 2.9       # nRF: 1.7 V–3.6 V supply voltage range
+    thresholdStart      = 3.2       # nRF: 1.7 V–3.6 V supply voltage range
     thresholdStop       = 2.2
     thresholdDead       = 1.7
     thresholdStartINT   = thresholdStart
