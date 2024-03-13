@@ -7,7 +7,7 @@
 #include <nrfx_saadc.h>
 #include <nrfx_timer.h>
 
-#define NUMBER_OF_CHANNELS 2
+#define NUMBER_OF_CHANNELS 1
 
 #define SLEEP_THRESHOLD 1000 // mV
 #define WAKE_UP_THRESHOLD 1500 // mV
@@ -28,7 +28,5 @@ void handle_error(nrfx_err_t error_code);
 void saadc_init(void);
 
 void saadc_measure(void);
-
-void saadc_storage_check(void);
 
 #endif

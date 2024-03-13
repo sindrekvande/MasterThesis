@@ -1,13 +1,14 @@
 #include "saadc.h"
 #include "checkpoint.h"
+#include "stdio.h"
+
+float measure_value;
 
 nrf_saadc_value_t samples[NUMBER_OF_CHANNELS];
 nrfx_saadc_channel_t channels[NUMBER_OF_CHANNELS] = 
 {
     NRFX_SAADC_DEFAULT_CHANNEL_SE(NRF_SAADC_INPUT_AIN0, 0), 
-    NRFX_SAADC_DEFAULT_CHANNEL_SE(NRF_SAADC_INPUT_AIN1, 1), 
-    NRFX_SAADC_DEFAULT_CHANNEL_SE(NRF_SAADC_INPUT_AIN2, 2), 
-    NRFX_SAADC_DEFAULT_CHANNEL_SE(NRF_SAADC_INPUT_AIN3 ,3)
+    NRFX_SAADC_DEFAULT_CHANNEL_SE(NRF_SAADC_INPUT_AIN1, 1) 
 };
  
 void handle_error(nrfx_err_t error_code)
@@ -28,77 +29,49 @@ void saadc_init(void)
     err_code = nrfx_saadc_channels_config(channels, NUMBER_OF_CHANNELS);
     handle_error(err_code);
 
-    err_code = nrfx_saadc_simple_mode_set((1<<0|1<<1|1<<2|1<<3),
+    err_code = nrfx_saadc_simple_mode_set((1<<0|1<<1),
                                       NRF_SAADC_RESOLUTION_12BIT,
                                       NRF_SAADC_OVERSAMPLE_DISABLED,
                                       NULL);
     handle_error(err_code);
-}   
-
-void timer_event_handler(nrf_timer_event_t event_type, void * p_context)
-{
-    if(event_type == NRF_TIMER_EVENT_COMPARE0)
-    {
-        nrfx_err_t err_code;
-        int32_t int_part; 
- 
-        err_code = nrfx_saadc_buffer_set(samples, NUMBER_OF_CHANNELS);
-        handle_error(err_code);
-
-        err_code = nrfx_saadc_mode_trigger();
-        handle_error(err_code);
-
-        //printf("#### ADC values ####\n");
-        // 3.3V reference voltage and 12-bit ADC resolution. Check if this is correct
-        //for (int i = 0; i < NUMBER_OF_CHANNELS; i++) {
-        //    // RESULT = [V(P) – V(N)] * (1/0.6V) * 2^12 GAIN with diff: 1/6
-        //    int32_t millivolts = (samples[i] * 1000 * 100 * 0.6) / 4095;
-        //    int_part = millivolts / 100; 
-        //    int32_t frac_part = millivolts % 100;
-        //    printf("sample %d: %d.%02d mV\n", i, int_part, frac_part);
-        //}
-
-        int32_t millivolts = (samples[3] * 1000 * 100 * 3.6) / 4095; // Changed gain in header file!
-        int_part = millivolts / 100; 
-        int32_t frac_part = millivolts % 100;
-        printf("Stored current: %d.%02d mV - STATE: %d\n", int_part, frac_part, current_state);
-
-        if (current_state == NORMAL_OPERATION && int_part < SLEEP_THRESHOLD) {
-            printf("Current too low, going to sleep.\n");
-            current_state = CHECKPOINT_AND_SLEEP;
-        } else if (current_state == NORMAL_OPERATION && int_part >= SLEEP_THRESHOLD) {
-            printf("Keep working.\n");
-            current_state = NORMAL_OPERATION;
-        } else if (current_state == SLEEP_CURRENT_CHECK && int_part < WAKE_UP_THRESHOLD) {
-            printf("Current threshold not reached, stay in sleep.\n");
-            current_state = SLEEP_CURRENT_CHECK;
-        } else if (current_state == SLEEP_CURRENT_CHECK && int_part >= WAKE_UP_THRESHOLD) {
-            printf("Current threshold reached, wake up.\n");
-            current_state = WAKEUP_AND_RECOVER;
-        }
-    }
 }
 
-void timer_init(void) 
-{
+void saadc_measure() {
     nrfx_err_t err_code;
-
-    nrfx_timer_t timer = NRFX_TIMER_INSTANCE(TIMER_INSTANCE_ID);
-    uint32_t base_frequency = NRF_TIMER_BASE_FREQUENCY_GET(timer.p_reg);
-    nrfx_timer_config_t config = NRFX_TIMER_DEFAULT_CONFIG(base_frequency);
-    config.bit_width = NRF_TIMER_BIT_WIDTH_32;
-
-    err_code = nrfx_timer_init(&timer, &config, timer_event_handler);
+ 
+    err_code = nrfx_saadc_buffer_set(samples, NUMBER_OF_CHANNELS);
     handle_error(err_code);
 
-#if defined(__ZEPHYR__)
-    IRQ_DIRECT_CONNECT(NRFX_IRQ_NUMBER_GET(NRF_TIMER_INST_GET(TIMER_INSTANCE_ID)), IRQ_PRIO_LOWEST,
-                       NRFX_TIMER_INST_HANDLER_GET(TIMER_INSTANCE_ID), 0);
-#endif
+    err_code = nrfx_saadc_mode_trigger();
+    handle_error(err_code);
 
-    nrfx_timer_clear(&timer);
-    uint32_t desired_ticks = nrfx_timer_ms_to_ticks(&timer, PERIOD_MS);
-    nrfx_timer_extended_compare(&timer, NRF_TIMER_CC_CHANNEL0, desired_ticks,
-                                NRF_TIMER_SHORT_COMPARE0_CLEAR_MASK, true);
-    nrfx_timer_enable(&timer);
+    measure_value = (samples[0] * 3.6f * 1000) / 4095; // Changed gain in header file!
+    printf("Measured value: %.2f V\n", measure_value);
+}
+
+void saadc_storage_check() {
+    nrfx_err_t err_code;
+ 
+    err_code = nrfx_saadc_buffer_set(samples, NUMBER_OF_CHANNELS);
+    handle_error(err_code);
+
+    err_code = nrfx_saadc_mode_trigger();
+    handle_error(err_code);
+
+    float storage_current = (samples[1] * 3.6f * 1000) / 4095; // Changed gain in header file!
+    printf("Stored current: %.2f mV - STATE: %d\n", storage_current, current_state);
+
+    if (current_state == MEASURE && storage_current < SLEEP_THRESHOLD) {
+        printf("Current too low, going to SAVE.\n");
+        current_state = SAVE;
+    } else if (current_state == COMMUNICATE && storage_current < SLEEP_THRESHOLD) {
+        printf("Current too low, going to SAVE.\n");
+        current_state = SAVE;
+    } else if (current_state == MEASURE && storage_current >= SLEEP_THRESHOLD) {
+        printf("Measure completed, going to COMMUNICATE.\n");
+        current_state = COMMUNICATE;
+    } else if (current_state == COMMUNICATE && storage_current >= SLEEP_THRESHOLD) {
+        printf("Communicate completed, going to NORMAL_SLEEP.\n");
+        current_state = NORMAL_SLEEP;
+    }
 }

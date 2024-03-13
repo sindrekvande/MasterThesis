@@ -1,15 +1,24 @@
 #include <zephyr/kernel.h>
 #include <zephyr/sys/poweroff.h>
-#include "lpcomp.h"
 #include "checkpoint.h"
+#include <nrfx_power.h>
 #include "saadc.h"
 #include "bt.h"
+
+typedef enum {
+    MEASURE,
+    COMMUNICATE,
+    SAVE,
+    RECOVER,
+    NORMAL_SLEEP,
+    THRESHOLD_SLEEP,
+} device_state_t;
 
 struct k_timer my_timer;
 
 device_state_t current_state = RECOVER;
 
-int main(void) {
+int main(void){
     int err;
 
     err = bluetooth_init(&bluetooth_callbacks, &remote_service_callbacks);
@@ -19,7 +28,6 @@ int main(void) {
 
     k_timer_init(&my_timer, NULL, NULL);
     saadc_init();
-    lpcomp_idle_init();
 
     while(1) {
         switch (current_state) {
@@ -53,7 +61,7 @@ int main(void) {
                 __WFI();
                 current_state = MEASURE;
                 break;
-            
+
             case THRESHOLD_SLEEP:
                 printf("GOING TO DEEP SLEEP\n");
                 sys_poweroff();

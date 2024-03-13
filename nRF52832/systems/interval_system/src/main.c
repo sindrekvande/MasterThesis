@@ -1,7 +1,7 @@
 #include <zephyr/kernel.h>
 #include <zephyr/sys/poweroff.h>
-#include "lpcomp.h"
 #include "checkpoint.h"
+#include "lpcomp.h"
 #include "saadc.h"
 #include "bt.h"
 
@@ -19,44 +19,40 @@ int main(void) {
 
     k_timer_init(&my_timer, NULL, NULL);
     saadc_init();
-    lpcomp_idle_init();
+    nrfx_lpcomp_uninit();
 
     while(1) {
         switch (current_state) {
             case MEASURE:
                 saadc_measure();
-                current_state = COMMUNICATE;
+                checkpoint_create();
                 break;
             
             case COMMUNICATE:
                 advertisment_init();
                 NRFX_DELAY_US(20000000);
                 advertisment_uninit();
-                current_state = NORMAL_SLEEP;
-                break;
-            
-            case SAVE:
-                printf("SAVE CHECKPOINT\n");
-                //checkpoint_create();
-                current_state = THRESHOLD_SLEEP;
+                checkpoint_create();
                 break;
 
+            case SAVE:
+                break;
+            
             case RECOVER:
                 printf("RECOVER CHECKPOINT\n");
                 //checkpoint_recover();
                 current_state = MEASURE;
                 break;
 
-            case NORMAL_SLEEP:
+            case NORMAL_SLEEP:                
                 printf("GOING TO SLEEP (10 minutes)\n");
                 k_timer_start(&my_timer, K_MSEC(20000), K_FOREVER);
                 __WFI();
                 current_state = MEASURE;
                 break;
-            
+
             case THRESHOLD_SLEEP:
-                printf("GOING TO DEEP SLEEP\n");
-                sys_poweroff();
+            
                 break;
         }
     }
