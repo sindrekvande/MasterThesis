@@ -2,7 +2,10 @@ import file_handler as fh
 import matplotlib.pyplot as plt
 import numpy as np
 from datetime import datetime as time
-from decimal import *
+import pandas as pd
+#import openpyxl as xl
+
+import xl_handler as xl
 # take in solar trace
 # feed solar trace to simulated energy storage
 # do work (measure, communicate, sleep) in state machine
@@ -66,27 +69,28 @@ class checkpoint:
     def recover(self, capacitor: energyStorage):
         capacitor.useEnergy(self.powerUse * self.timeStep)
 
-def main():
-    start = time.now()
+def main(
     ############## Parameters ###############
-    timeStep            = 1*10**-3  # millisecond
-    adcSamples          = 3000      # 200 samples per second
-    btSize              = adcSamples*12      # should be atleast adcSamples*122
-    sleepTime           = 60*10     # in seconds
-    numDays             = 7        # which day of the month
-    capacitorSize       = 47*10**-3 # in Farad
-    solarCellSize       = 15         # in cm^2
-    maxVoltageOut       = 3.3
-    timeToSave          = 0.1       # should reflect 64kB RAM to flash write at 64MHz
-    timeToRecover       = 0.1
-    thresholdStart      = 3.2       # nRF: 1.7 V–3.6 V supply voltage range
-    thresholdStop       = 2.2
-    thresholdDead       = 1.7
+    timeStep            = 1*10**-3,  # millisecond
+    adcSamples          = 3000,      # 200 samples per second
+    btSize              = None,      # should be atleast adcSamples*122
+    sleepTime           = 60*10,     # in seconds
+    numDays             = 11,        # which day of the month
+    capacitorSize       = 476*10**-3, # in Farad
+    solarCellSize       = 1,         # in cm^2
+    maxVoltageOut       = 3.3,
+    timeToSave          = 0.1,       # should reflect 64kB RAM to flash write at 64MHz
+    timeToRecover       = 0.1,
+    thresholdStart      = 3.2,       # nRF: 1.7 V–3.6 V supply voltage range
+    thresholdStop       = 2.2,
+    thresholdDead       = 1.7,
+    season              = 'winter' ):
+    if btSize is None:
+        btSize = adcSamples*12
     thresholdStartINT   = thresholdStart
-    season              = 'summer'
     #testToDo            = "all"     # svs, adc, int or all
     ########################################
-
+    start = time.now()
     trace = fh.file(season, numDays).brightnessDF
     capacitorSVS = energyStorage(timeStep, capacitorSize, maxVoltageOut, solarCellSize)
     capacitorADC = energyStorage(timeStep, capacitorSize, maxVoltageOut, solarCellSize)
@@ -344,6 +348,7 @@ def main():
     print("Times measured: ", timesMeasuredSVS)
     print("Times communicated: ", timesCommunicatedSVS)
     print("Potential time saved: ", timeSavedSVS*timeStep, "\n")
+    resultSVS = ['SVS', timeCheckpointedSVS, timesRecoveredSVS, timesMeasuredSVS, timesCommunicatedSVS]
 
     print("ADC: ")
     print("Times checkpointed: ", timeCheckpointedADC)
@@ -351,6 +356,7 @@ def main():
     print("Times measured: ", timesMeasuredADC)
     print("Times communicated: ", timesCommunicatedADC)
     print("Potential time saved: ", timeSavedADC*timeStep, "\n")
+    resultADC = ['ADC', timeCheckpointedADC, timesRecoveredADC, timesMeasuredADC, timesCommunicatedADC]
 
     print("INTERVAL: ")
     print("Times checkpointed: ", timeCheckpointedINT)
@@ -358,6 +364,7 @@ def main():
     print("Times measured: ", timesMeasuredINT)
     print("Times communicated: ", timesCommunicatedINT)
     print("Potential time saved: ", timeSavedINT*timeStep, "\n")
+    resultINT = ['Interval', timeCheckpointedINT, timesRecoveredINT, timesMeasuredINT, timesCommunicatedINT]
 
     timeAxis = np.linspace(start=0, stop=24, num=len(voltageSVS))
     timeAxisTicks = np.arange(0, 24, step=1)
@@ -400,8 +407,69 @@ def main():
     fig.tight_layout()
     #plt.legend(loc='best', bbox_to_anchor=(0.5, 0., 0.5, 0.5), ncols=2)
     #plt.plot(stateTrace)
-    print('simulation/results/sim_'+str(season)+str(numDays)+'_'+str(int(capacitorSize*1000))+'mF'+'_adc'+str(adcSamples)+'_sleep'+str(sleepTime)+'_start'+str(thresholdStart)+'_stop'+str(thresholdStop)+'.svg')
+    timeLoc = 'simulation/results/autosim_time_'+str(season)+str(numDays)+'_'+str(int(capacitorSize*1000))+'mF'+'_adc'+str(adcSamples)+'_sleep'+str(sleepTime)+'_start'+str(thresholdStart)+'_stop'+str(thresholdStop)+'.png'
+    print(timeLoc)
     #plt.show()
-    plt.savefig('simulation/results/sim_'+str(season)+str(numDays)+'_'+str(int(capacitorSize*1000))+'mF'+'_adc'+str(adcSamples)+'_sleep'+str(sleepTime)+'_start'+str(thresholdStart)+'_stop'+str(thresholdStop)+'.svg', bbox_inches="tight")
+    plt.savefig(timeLoc, bbox_inches="tight")
+    plt.cla()
 
-main()
+    return timeLoc, resultINT, resultADC, resultSVS
+
+def plotBar(resultINT, resultADC, resultSVS, metrics, barLoc):
+    barWidth = 0.25
+    x = np.arange(len(metrics))
+    fig = plt.figure(figsize=(10,6))
+
+    plt.bar(x-barWidth, resultINT[1:], width=barWidth, label=resultINT[0], color='#0089B3')
+    plt.bar(x           , resultADC[1:], width=barWidth, label=resultADC[0], color='#00556F')
+    plt.bar(x+barWidth, resultSVS[1:], width=barWidth, label=resultSVS[0], color='#00C4FF')
+    for i, v in enumerate(resultINT[1:]):
+        plt.text(i-barWidth, v, str(v), color='#0089B3', horizontalalignment='center', verticalalignment='bottom')
+    for i, v in enumerate(resultADC[1:]):
+        plt.text(i, v, str(v), color='#00556F', horizontalalignment='center', verticalalignment='bottom')
+    for i, v in enumerate(resultSVS[1:]):
+        plt.text(i+barWidth, v, str(v), color='#00C4FF', horizontalalignment='center', verticalalignment='bottom')
+    plt.xticks(x, metrics)
+    #plt.ylim([0, max([max(resultINT[1:]), max(resultADC[1:]), max(resultSVS[1:])]) * 1.35])
+    
+    plt.ylabel('Number of times')
+    plt.xlabel('Metric')
+    plt.legend(loc='best')
+    #plt.show()
+    plt.savefig(barLoc, bbox_inches="tight")
+    plt.close()
+    
+
+#seasons = ['winter', 'summer']
+#winterDays = [11, 20, 3]
+#summerDays = [7, 10, 2]
+headers = ['Season', 'Day', 'Capacitance', 'Samples', 'Sleep', 'Start', 'Stop', '', '$BAR_NAME$', '$TIME_NAME$']
+metrics = ['Checkpointed', 'Recovered', 'Measured', 'Communicated']
+resultLoc = 'simulation/results/test.xlsx'
+
+simSet = pd.read_csv('simulation/simSetTest.tsv', sep='\t')
+
+xl.createExcel(resultLoc, headers)
+for i, row in simSet.iterrows():
+    #for season in seasons:
+    #    for day in (winterDays if season == seasons[0] else summerDays):
+    params = [row['season'], row['day'], row['capacitance'], row['samples'], row['sleep'], row['start'], row['stop']]
+    print('Sim ', str(i+1)+'/'+str(len(simSet))+':', params)
+    barLoc = 'simulation/results/autosim_bar_'+str(row['season'])+str(row['day'])+'_'+str(int(row['capacitance']))+'mF'+'_adc'+str(row['samples'])+'_sleep'+str(row['sleep'])+'_start'+str(row['start'])+'_stop'+str(row['stop'])+'.png'
+    
+    timeLoc, resultINT, resultADC, resultSVS = main(adcSamples         = row['samples'],
+                                                    sleepTime           = row['sleep'],
+                                                    numDays             = row['day'],
+                                                    capacitorSize       = row['capacitance']*10**-3,
+                                                    thresholdStart      = row['start'],
+                                                    thresholdStop       = row['stop'],
+                                                    season              = row['season'])
+    
+    #resultINT, resultADC, resultSVS = ['Interval', 22, 1, 11, 11], ['ADC', 14, 3, 12, 12], ['SVS', 5, 5, 13, 13]
+    plotBar(resultINT, resultADC, resultSVS, metrics, barLoc)
+
+    xl.writeExcel(resultLoc, params, barLoc, timeLoc)
+    
+    
+
+#main()
