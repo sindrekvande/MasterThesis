@@ -416,12 +416,12 @@ def main(
     return timeLoc, resultINT, resultADC, resultSVS
 
 def plotBar(resultINT, resultADC, resultSVS, metrics, barLoc):
-    barWidth = 0.25
+    barWidth = 0.2
     x = np.arange(len(metrics))
     fig = plt.figure(figsize=(10,6))
 
     plt.bar(x-barWidth, resultINT[1:], width=barWidth, label=resultINT[0], color='#0089B3')
-    plt.bar(x           , resultADC[1:], width=barWidth, label=resultADC[0], color='#00556F')
+    plt.bar(x         , resultADC[1:], width=barWidth, label=resultADC[0], color='#00556F')
     plt.bar(x+barWidth, resultSVS[1:], width=barWidth, label=resultSVS[0], color='#00C4FF')
     for i, v in enumerate(resultINT[1:]):
         plt.text(i-barWidth, v, str(v), color='#0089B3', horizontalalignment='center', verticalalignment='bottom')
@@ -443,7 +443,7 @@ def plotBar(resultINT, resultADC, resultSVS, metrics, barLoc):
 #seasons = ['winter', 'summer']
 #winterDays = [11, 20, 3]
 #summerDays = [7, 10, 2]
-headers = ['Season', 'Day', 'Capacitance', 'Samples', 'Sleep', 'Start', 'Stop', '', '$BAR_NAME$', '$TIME_NAME$']
+headers = ['Season', 'Day', 'Capacitance [mF]', 'Samples', 'Sleep', 'Start', 'Stop', '', 'Resulting metrics', 'Time plot']
 metrics = ['Checkpointed', 'Recovered', 'Measured', 'Communicated']
 resultLoc = 'simulation/results/test.xlsx'
 
@@ -454,7 +454,7 @@ for i, row in simSet.iterrows():
     #for season in seasons:
     #    for day in (winterDays if season == seasons[0] else summerDays):
     params = [row['season'], row['day'], row['capacitance'], row['samples'], row['sleep'], row['start'], row['stop']]
-    print('Sim ', str(i+1)+'/'+str(len(simSet))+':', params)
+    print('Sim\t', str(i+1)+'/'+str(len(simSet))+':', params)
     barLoc = 'simulation/results/autosim_bar_'+str(row['season'])+str(row['day'])+'_'+str(int(row['capacitance']))+'mF'+'_adc'+str(row['samples'])+'_sleep'+str(row['sleep'])+'_start'+str(row['start'])+'_stop'+str(row['stop'])+'.png'
     
     timeLoc, resultINT, resultADC, resultSVS = main(adcSamples         = row['samples'],
