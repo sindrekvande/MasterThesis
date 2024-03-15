@@ -1,6 +1,7 @@
 #ifndef SAADC_H
 #define SAADC_H
 
+#include <zephyr/kernel.h>
 #include <stdio.h>
 #include <stdbool.h>
 #include <stdint.h>
@@ -30,5 +31,7 @@ void saadc_init(void);
 void saadc_measure(void);
 
 void saadc_storage_check(void);
+
+void test_saadc_service(void);
 
 #endif

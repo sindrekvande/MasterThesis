@@ -77,3 +77,15 @@ int advertisment_uninit(void) {
     }
     return err;
 }
+
+void test_bt_service() {
+    printf("Starting BT service test...\n");
+
+    bluetooth_init(&bluetooth_callbacks, &remote_service_callbacks);
+    advertisment_init();
+
+    k_sleep(K_SECONDS(10));
+
+    advertisment_uninit();
+    printf("BT service test completed.\n");
+}

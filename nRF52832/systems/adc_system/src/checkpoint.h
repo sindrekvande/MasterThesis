@@ -68,4 +68,6 @@ int save_ram_to_flash();
 
 int retrieve_ram_from_flash();
 
+void test_checkpoint_service();
+
 #endif
