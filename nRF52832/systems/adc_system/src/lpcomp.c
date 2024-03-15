@@ -28,3 +28,13 @@ void lpcomp_init(void) {
 
     nrfx_lpcomp_enable();
 }
+
+void test_lpcomp_service() {
+    printf("Starting LPCOMP service test...\n");
+
+    lpcomp_init();
+
+    k_sleep(K_SECONDS(10));
+
+    printf("LPCOMP service test completed.\n");
+}

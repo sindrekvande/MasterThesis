@@ -75,3 +75,18 @@ void saadc_storage_check() {
         current_state = NORMAL_SLEEP;
     }
 }
+
+void test_saadc_service() {
+    printf("Starting SAADC service test...\n");
+
+    saadc_init();
+
+    // Continuously measure for a fixed duration (10 seconds)
+    uint32_t start_time = k_uptime_get_32();
+    while (k_uptime_get_32() - start_time < 10000) {
+        saadc_measure();
+        k_sleep(K_MSEC(100));
+    }
+
+    printf("SAADC service test completed.\n");
+}

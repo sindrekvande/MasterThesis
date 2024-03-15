@@ -84,10 +84,10 @@ void set_program_state(uint32_t * buf) {
     __asm__ volatile("MOV R11, %0" : : "r" (buf[11]) : );
     __asm__ volatile("MOV R12, %0" : : "r" (buf[12]) : );
 
-    __asm__ volatile("MSR MSP, %0\n": : "r" (buf[13]) : );
-    __asm__ volatile("MSR PSP, %0\n": : "r" (buf[14]) : ); // This recover does not work for nRF52840, sometimes?
-    __asm__ volatile("MOV LR, %0\n": : "r" (buf[15]) : ); // This recover does not work for nRF52832 sometimes?
-    __asm__ volatile("MOV PC, %0\n": : "r" (buf[16]) : );
+    //__asm__ volatile("MSR MSP, %0\n": : "r" (buf[13]) : );
+    //__asm__ volatile("MSR PSP, %0\n": : "r" (buf[14]) : ); // This recover does not work for nRF52840, sometimes?
+    //__asm__ volatile("MOV LR, %0\n": : "r" (buf[15]) : ); // This recover does not work for nRF52832, sometimes?
+    //__asm__ volatile("MOV PC, %0\n": : "r" (buf[16]) : );
 }
 
 int save_ram_to_flash() {
@@ -129,10 +129,12 @@ int retrieve_ram_from_flash() {
     return 0;
 }
 
-void checkpoint_test_flash() {
+void test_checkpoint_service() {
+    printf("Starting Checkpoint service test...\n");
+
     checkpoint_create();
-    printk("\n");
+    k_sleep(K_SECONDS(5));
     checkpoint_recover();
-    printk("\n");
-    printk("DONE\n");
+
+    printf("Checkpoint service test completed.\n");
 }

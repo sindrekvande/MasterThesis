@@ -30,24 +30,24 @@ int main(void) {
 
             case COMMUNICATE:
                 advertisment_init();
-                NRFX_DELAY_US(20000000);    // Wait for bluetooth connection.
+                NRFX_DELAY_US(10000000);    // Wait for bluetooth connection.
                 saadc_handler();            // Send value if connnected
                 NRFX_DELAY_US(5000000);     // Give time to finish sending
                 advertisment_uninit();
-                NRFX_DELAY_US(1000000);     // Give time to uninit adv
+                NRFX_DELAY_US(100000);     // Give time to uninit adv
                 saadc_storage_check();
                 break;
             
             case SAVE:
-                printf("SAVE CHECKPOINT\n");
-                //checkpoint_create();
+                //printf("SAVE CHECKPOINT\n");
+                checkpoint_create();
                 lpcomp_init();
                 current_state = THRESHOLD_SLEEP;
                 break;
             
             case RECOVER:
-                printf("RECOVER CHECKPOINT\n");
-                //checkpoint_recover();
+                //printf("RECOVER CHECKPOINT\n");
+                checkpoint_recover();
                 current_state = MEASURE;
                 break;
 
