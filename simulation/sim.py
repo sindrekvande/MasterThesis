@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from datetime import datetime as time
 import pandas as pd
+import gc
 #import openpyxl as xl
 
 import xl_handler as xl
@@ -84,9 +85,12 @@ def main(
     thresholdStart      = 3.2,       # nRF: 1.7 V–3.6 V supply voltage range
     thresholdStop       = 2.2,
     thresholdDead       = 1.7,
-    season              = 'winter' ):
+    season              = 'winter',
+    timeLoc             = None):
     if btSize is None:
         btSize = adcSamples*12
+    if timeLoc is None:
+        timeLoc = 'simulation/results/autosim_time_'+str(season)+str(numDays)+'_'+str(int(capacitorSize*1000))+'mF'+'_adc'+str(adcSamples)+'_sleep'+str(sleepTime)+'_start'+str(thresholdStart)+'_stop'+str(thresholdStop)+'.png' 
     thresholdStartINT   = thresholdStart
     #testToDo            = "all"     # svs, adc, int or all
     ########################################
@@ -127,7 +131,7 @@ def main(
     checkpointedADC = 0
     timeSavedADC = 0
     timesRecoveredADC = 0
-    prevstateADC = "sleep"
+    prevstateADC = "measure"
     timeCheckpointedADC = 0
     timesMeasuredADC = 0
     timesCommunicatedADC = 0
@@ -139,7 +143,7 @@ def main(
     checkpointedINT = 0
     timeSavedINT = 0
     timesRecoveredINT = 0
-    prevstateINT = "sleep"
+    prevstateINT = "measure"
     timeCheckpointedINT = 0
     timesMeasuredINT = 0
     timesCommunicatedINT = 0
@@ -340,7 +344,9 @@ def main(
             voltageADC.append(capacitorADC.voltage)
             voltageINT.append(capacitorINT.voltage)
             irrTrace.append(irrValue)
-    
+    del trace, capacitorINT, capacitorADC, capacitorSVS, stateINT, stateADC, stateSVS, interval, JITadc, JITsvs
+    gc.collect()
+
     print("Code execution time: ", time.now() - start, "\n")
     print("SVS: ")
     print("Times checkpointed: ", timeCheckpointedSVS)
@@ -380,6 +386,7 @@ def main(
     ax[0].set(ylabel='Voltage [V]', xticks=timeAxisTicks)
     ax[0].legend(loc="upper right")
     ax[0].margins(x=0)
+    ax[0].axhline(maxVoltageOut, color='grey', ls='--')
     ax[0].axhline(thresholdStart, color='green', ls='--')
     ax[0].axhline(thresholdStop, color='orange', ls='--')
     ax[0].axhline(thresholdDead, color='red', ls='--')
@@ -388,6 +395,7 @@ def main(
     ax[1].set(ylabel='Voltage [V]', xticks=timeAxisTicks)
     ax[1].legend(loc="upper right")
     ax[1].margins(x=0)
+    ax[1].axhline(maxVoltageOut, color='grey', ls='--')
     ax[1].axhline(thresholdStart, color='green', ls='--')
     ax[1].axhline(thresholdStop, color='orange', ls='--')
     ax[1].axhline(thresholdDead, color='red', ls='--')
@@ -396,6 +404,7 @@ def main(
     ax[2].set(ylabel='Voltage [V]', xticks=timeAxisTicks)
     ax[2].legend(loc="upper right")
     ax[2].margins(x=0)
+    ax[2].axhline(maxVoltageOut, color='grey', ls='--')
     ax[2].axhline(thresholdStart, color='green', ls='--')
     ax[2].axhline(thresholdStop, color='orange', ls='--')
     ax[2].axhline(thresholdDead, color='red', ls='--')
@@ -407,11 +416,14 @@ def main(
     fig.tight_layout()
     #plt.legend(loc='best', bbox_to_anchor=(0.5, 0., 0.5, 0.5), ncols=2)
     #plt.plot(stateTrace)
-    timeLoc = 'simulation/results/autosim_time_'+str(season)+str(numDays)+'_'+str(int(capacitorSize*1000))+'mF'+'_adc'+str(adcSamples)+'_sleep'+str(sleepTime)+'_start'+str(thresholdStart)+'_stop'+str(thresholdStop)+'.png'
+    #timeLoc = 'simulation/results/autosim_time_'+str(season)+str(numDays)+'_'+str(int(capacitorSize*1000))+'mF'+'_adc'+str(adcSamples)+'_sleep'+str(sleepTime)+'_start'+str(thresholdStart)+'_stop'+str(thresholdStop)+'.png'
     print(timeLoc)
     #plt.show()
     plt.savefig(timeLoc, bbox_inches="tight")
     plt.cla()
+    plt.close()
+    del timeAxis, timeAxisTicks, voltageINT, voltageADC, voltageSVS, irrTrace 
+    gc.collect()
 
     return timeLoc, resultINT, resultADC, resultSVS
 
@@ -437,7 +449,10 @@ def plotBar(resultINT, resultADC, resultSVS, metrics, barLoc):
     plt.legend(loc='best')
     #plt.show()
     plt.savefig(barLoc, bbox_inches="tight")
+    plt.cla()
     plt.close()
+    del x
+    gc.collect()
     
 
 #seasons = ['winter', 'summer']
@@ -445,18 +460,21 @@ def plotBar(resultINT, resultADC, resultSVS, metrics, barLoc):
 #summerDays = [7, 10, 2]
 headers = ['Season', 'Day', 'Capacitance [mF]', 'Samples', 'Sleep', 'Start', 'Stop', '', 'Resulting metrics', 'Time plot']
 metrics = ['Checkpointed', 'Recovered', 'Measured', 'Communicated']
-resultLoc = 'simulation/results/test.xlsx'
+simSetFile = 'simSet1'
+resultLoc = 'simulation/results/'+simSetFile+'Results/'+simSetFile+'.xlsx'
 
-simSet = pd.read_csv('simulation/simSetTest.tsv', sep='\t')
+simSet = pd.read_csv('simulation/'+simSetFile+'.tsv', sep='\t')
 
 xl.createExcel(resultLoc, headers)
+del headers
+gc.collect()
 for i, row in simSet.iterrows():
     #for season in seasons:
     #    for day in (winterDays if season == seasons[0] else summerDays):
     params = [row['season'], row['day'], row['capacitance'], row['samples'], row['sleep'], row['start'], row['stop']]
     print('Sim\t', str(i+1)+'/'+str(len(simSet))+':', params)
-    barLoc = 'simulation/results/autosim_bar_'+str(row['season'])+str(row['day'])+'_'+str(int(row['capacitance']))+'mF'+'_adc'+str(row['samples'])+'_sleep'+str(row['sleep'])+'_start'+str(row['start'])+'_stop'+str(row['stop'])+'.png'
-    
+    barLoc = 'simulation/results/'+simSetFile+'Results/'+simSetFile+'_bar_'+str(row['season'])+str(row['day'])+'_'+str(int(row['capacitance']))+'mF'+'_adc'+str(row['samples'])+'_sleep'+str(row['sleep'])+'_start'+str(row['start'])+'_stop'+str(row['stop'])+'.png'
+    timeLoc= 'simulation/results/'+simSetFile+'Results/'+simSetFile+'_time_'+str(row['season'])+str(row['day'])+'_'+str(int(row['capacitance']))+'mF'+'_adc'+str(row['samples'])+'_sleep'+str(row['sleep'])+'_start'+str(row['start'])+'_stop'+str(row['stop'])+'.png' 
     timeLoc, resultINT, resultADC, resultSVS = main(adcSamples         = row['samples'],
                                                     sleepTime           = row['sleep'],
                                                     numDays             = row['day'],
@@ -467,9 +485,7 @@ for i, row in simSet.iterrows():
     
     #resultINT, resultADC, resultSVS = ['Interval', 22, 1, 11, 11], ['ADC', 14, 3, 12, 12], ['SVS', 5, 5, 13, 13]
     plotBar(resultINT, resultADC, resultSVS, metrics, barLoc)
+    del resultINT, resultADC, resultSVS
+    gc.collect()
 
     xl.writeExcel(resultLoc, params, barLoc, timeLoc)
-    
-    
-
-#main()
