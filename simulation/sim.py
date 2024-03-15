@@ -4,6 +4,7 @@ import numpy as np
 from datetime import datetime as time
 import pandas as pd
 import gc
+import os
 #import openpyxl as xl
 
 import xl_handler as xl
@@ -461,6 +462,7 @@ def plotBar(resultINT, resultADC, resultSVS, metrics, barLoc):
 headers = ['Season', 'Day', 'Capacitance [mF]', 'Samples', 'Sleep', 'Start', 'Stop', '', 'Resulting metrics', 'Time plot']
 metrics = ['Checkpointed', 'Recovered', 'Measured', 'Communicated']
 simSetFile = 'simSet1'
+os.makedirs('simulation/results/'+simSetFile+'Results')
 resultLoc = 'simulation/results/'+simSetFile+'Results/'+simSetFile+'.xlsx'
 
 simSet = pd.read_csv('simulation/'+simSetFile+'.tsv', sep='\t')
@@ -481,7 +483,8 @@ for i, row in simSet.iterrows():
                                                     capacitorSize       = row['capacitance']*10**-3,
                                                     thresholdStart      = row['start'],
                                                     thresholdStop       = row['stop'],
-                                                    season              = row['season'])
+                                                    season              = row['season'],
+                                                    timeLoc             = timeLoc)
     
     #resultINT, resultADC, resultSVS = ['Interval', 22, 1, 11, 11], ['ADC', 14, 3, 12, 12], ['SVS', 5, 5, 13, 13]
     plotBar(resultINT, resultADC, resultSVS, metrics, barLoc)
