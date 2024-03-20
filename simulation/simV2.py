@@ -91,6 +91,7 @@ def singleSim(
                 else:
                     if capacitor.voltage > thresholdStart:
                         dead = False
+                capacitor.useEnergy()
                 voltage.append(capacitor.voltage)
                 if s == svs:
                     irrTrace.append(irrValue)
