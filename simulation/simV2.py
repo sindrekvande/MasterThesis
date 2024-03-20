@@ -63,8 +63,8 @@ def singleSim(
     svs = 'svs'
     schemes = [interval, adc, svs]
     trace = fh.file(season, day).brightnessDF
-    measure, sleep, communicate, dead = 'measure', 'sleep', 'communicate', 'dead'
-    states = [measure, sleep, communicate, dead]
+    measure, sleep, deepSleep, communicate, dead, checkpoint, recover = False, False, False, False, True, False, False
+    #states = [measure, sleep, communicate, dead]
     nextState = measure
     irrTrace = ['irradiance']
     timeResults = [[]]
@@ -79,8 +79,18 @@ def singleSim(
         for _, irrValue in trace.itertuples():
             for i in range(60):
                 capacitor.addEnergy(irrValue)
-                
+                if not dead:
+                    if measure:
 
+                        if communicate:
+                            communicate = False
+                    else:
+                        sleep = True
+                    if capacitor.voltage < thresholdDead:
+                        dead = True
+                else:
+                    if capacitor.voltage > thresholdStart:
+                        dead = False
                 voltage.append(capacitor.voltage)
                 if s == svs:
                     irrTrace.append(irrValue)
@@ -92,7 +102,7 @@ def singleSim(
     del voltage, irrValue, capacitor, timesMeasured, timesCommunicated, timesCheckpointed, timesRecovered
     return timeResults, barResults
 
-def plot(barLoc, timeLoc, timeResults, barResults):
+def plotGraphs(barLoc, timeLoc, timeResults, barResults):
     pass
 
 def multiSim():
@@ -110,3 +120,7 @@ def multiSim():
         print('Sim\t', str(i+1)+'/'+str(len(simSet))+':', params)
         timeLoc = 'simulation/results/autosim_time_'+str(row['season'])+str(row['day'])+'_'+str(int(row['capacitance']))+'mF'+'_adc'+str(row['samples'])+'_sleep'+str(row['sleep'])+'_start'+str(row['start'])+'_stop'+str(row['stop'])+'.png'
         barLoc = 'simulation/results/autosim_bar_'+str(row['season'])+str(row['day'])+'_'+str(int(row['capacitance']))+'mF'+'_adc'+str(row['samples'])+'_sleep'+str(row['sleep'])+'_start'+str(row['start'])+'_stop'+str(row['stop'])+'.png'
+        
+        timeResults, barResults = singleSim()
+
+        plotGraphs(barLoc, timeLoc, timeResults, barResults)
