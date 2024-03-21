@@ -66,7 +66,7 @@ def singleSim(
     measure, sleep, deepSleep, communicate, dead, checkpoint, recover = False, False, False, False, True, False, False
     #states = [measure, sleep, communicate, dead]
     nextState = measure
-    irrTrace = ['irradiance']
+    irrTrace = ['Solar trace']
     timeResults = [[]]
     barResults = [[]]
     for s in schemes:
@@ -103,11 +103,50 @@ def singleSim(
     del voltage, irrValue, capacitor, timesMeasured, timesCommunicated, timesCheckpointed, timesRecovered
     return timeResults, barResults
 
-def plotGraphs(barLoc, timeLoc, timeResults, barResults):
-    pass
+def plotGraphs(barLoc, timeLoc, timeResults, barResults, metrics, params):
+    barWidth = 0.2
+    x = np.arange(len(metrics))
+    fig = plt.figure(figsize=(10,6))
+    colors = ['#0089B3', '#00556F', '#00C4FF']
+
+    for i in range(3):
+        plt.bar(x+barWidth*(i-1), barResults[i][1:], width=barWidth, label=barResults[i][0], color=colors[i])
+        for j, v in enumerate(barResults[i][1:]):
+            plt.text(j+barWidth*(i-1), v, str(v), color=colors[i], horizontalalignment='center', verticalalignment='bottom')
+    plt.xticks(x, metrics)
+    plt.ylabel('Number of times')
+    plt.xlabel('Metric')
+    plt.legend(loc='best')
+    plt.savefig(barLoc, bbox_inches="tight")
+    plt.cla()
+    plt.close()
+
+    timeAxis = np.linspace(start=0, stop=24, num=len(timeResults[0][1:]))
+    timeAxisTicks = np.arange(0, 24, step=1)
+    fig = plt.figure(figsize=(16,9))
+    gs = fig.add_gridspec(4, hspace=0)
+    ax = gs.subplots(sharex=True, sharey=False)
+    for i in range(3):
+        ax[i].plot(timeAxis, timeResults[i][1:], label=timeResults[i][0])
+        ax[i].set(ylabel='Voltage [V]', xticks=timeAxisTicks)
+        ax[i].legend(loc="upper right")
+        ax[i].margins(x=0)
+        ax[i].axhline(3.3, color='grey', ls='--')
+        ax[i].axhline(params['start'], color='green', ls='--')
+        ax[i].axhline(params['stop'], color='orange', ls='--')
+        ax[i].axhline(1.7, color='red', ls='--')
+    ax[3].plot(timeAxis, timeResults[3][1:], label=timeResults[3][0], color=('#ffae49' if params['season'] =='summer' else '#44a5c2' if params['season'] =='autumn' else '#024b7a'))
+    ax[3].set(xlabel='Time of day', ylabel='Solar irradiance [W/m$^2$]', xticks=timeAxisTicks, ylim=[-10,1300])
+    ax[3].legend(loc="upper right")
+    ax[3].margins(x=0)
+    
+    fig.tight_layout()
+    plt.savefig(timeLoc, bbox_inches="tight")
+    plt.cla()
+    plt.close()
 
 def multiSim():
-    headers = ['Season', 'Day', 'Capacitance [mF]', 'Samples', 'Sleep', 'Start', 'Stop', '', 'Resulting metrics', 'Time plot']
+    headers = ['Season', 'Day', 'Capacitance [mF]', 'SampleNum', 'SampleSize', 'Sleep', 'Start', 'Stop', '', 'Resulting metrics', 'Time plot']
     metrics = ['Checkpointed', 'Recovered', 'Measured', 'Communicated']
     simSetFile = 'simSet1'
     os.makedirs('simulation/results/'+simSetFile+'Results')
@@ -117,11 +156,20 @@ def multiSim():
 
     xl.createExcel(resultLoc, headers)
     for i, row in simSet.iterrows():
-        params = [row['season'], row['day'], row['capacitance'], row['samples'], row['sleep'], row['start'], row['stop']]
+        params = [row['season'], row['day'], row['capacitance'], row['sampleNum'], row['sampleSize'], row['sleep'], row['start'], row['stop']]
         print('Sim\t', str(i+1)+'/'+str(len(simSet))+':', params)
-        timeLoc = 'simulation/results/autosim_time_'+str(row['season'])+str(row['day'])+'_'+str(int(row['capacitance']))+'mF'+'_adc'+str(row['samples'])+'_sleep'+str(row['sleep'])+'_start'+str(row['start'])+'_stop'+str(row['stop'])+'.png'
-        barLoc = 'simulation/results/autosim_bar_'+str(row['season'])+str(row['day'])+'_'+str(int(row['capacitance']))+'mF'+'_adc'+str(row['samples'])+'_sleep'+str(row['sleep'])+'_start'+str(row['start'])+'_stop'+str(row['stop'])+'.png'
+        timeLoc = 'simulation/results/'+simSetFile+'Results/'+simSetFile+'_time_'+str(row['season'])+str(row['day'])+'_'+str(int(row['capacitance']))+'mF'+'_sampleNum'+str(row['sampleNum'])+'_sampleSize'+str(row['sampleSize'])+'_sleep'+str(row['sleep'])+'_start'+str(row['start'])+'_stop'+str(row['stop'])+'.png'
+        barLoc = 'simulation/results/'+simSetFile+'Results/'+simSetFile+'_bar_'+str(row['season'])+str(row['day'])+'_'+str(int(row['capacitance']))+'mF'+'_sampleNum'+str(row['sampleNum'])+'_sampleSize'+str(row['sampleSize'])+'_sleep'+str(row['sleep'])+'_start'+str(row['start'])+'_stop'+str(row['stop'])+'.png'
         
-        timeResults, barResults = singleSim()
+        timeResults, barResults = singleSim(sampleNum       = row['sampleNum'],
+                                            sampleSize      = row['sampleSize'],
+                                            sleepTime       = row['sleep'],
+                                            day             = row['day'],
+                                            capacitorSize   = row['capacitance'],
+                                            thresholdStart  = row['start'],
+                                            thresholdStop   = row['stop'],
+                                            season          = row['season'])
 
-        plotGraphs(barLoc, timeLoc, timeResults, barResults)
+        plotGraphs(barLoc, timeLoc, timeResults, barResults, metrics)
+
+        xl.writeExcel(resultLoc, params, barLoc, timeLoc)
