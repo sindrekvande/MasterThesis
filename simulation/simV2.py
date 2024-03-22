@@ -55,6 +55,7 @@ def singleSim(
     measurePower        = 8 * 10 ** -3 * 3
     communicatePower    = 9 * 10 ** -3 * 3
     sleepPower          = 1.9 * 10 ** -6 * 3
+    deepSleepPower      = 0.5 * 10 ** -6 * 3
     measureTime         = sampleSize/200
     comunicateTime      = btSize/10**6
 
@@ -69,6 +70,12 @@ def singleSim(
     irrTrace = ['Solar trace']
     timeResults = [[]]
     barResults = [[]]
+    energies = {'checkpoint'    : timeToSave,
+                'recover'       : timeToRecover,
+                'measure'       : measurePower*measureTime,
+                'communicate'   : communicatePower*comunicateTime,
+                'sleep'         : sleepPower,
+                'deepsleep'     : deepSleepPower}
     for s in schemes:
         capacitor = energyStorage(capacitorSize, scale)
         voltage = [s]
@@ -79,19 +86,35 @@ def singleSim(
         for _, irrValue in trace.itertuples():
             for i in range(60):
                 capacitor.addEnergy(irrValue)
+                energyUse = 0
                 if not dead:
-                    if measure:
-
-                        if communicate:
-                            communicate = False
-                    else:
-                        sleep = True
                     if capacitor.voltage < thresholdDead:
                         dead = True
+                    if not deepSleep:
+                        if measure:
+                            energyUse += energies['measure']
+                            energyUse += energies['sleep']* (1 - (measureTime + comunicateTime * communicate))
+                            if communicate:
+                                energyUse += energies['communicate']
+                                communicate = False
+                            if s == interval:
+                                energyUse += energies['checkpoint'] 
+                        else:
+                            energyUse += energies['sleep']
+                        if capacitor.voltage < thresholdStop and s != interval:
+                            energyUse += energies['checkpoint']
+                            deepSleep = True
+                    else:
+                        if capacitor.voltage > thresholdStart:
+                            energies += energies['recover'] + energies['deepsleep']*(1-timeToRecover)
+                            deepSleep = False
+                        else:
+                            energyUse += energies['deepsleep']
                 else:
                     if capacitor.voltage > thresholdStart:
                         dead = False
-                capacitor.useEnergy()
+                        deepSleep = False
+                capacitor.useEnergy(energyUse)
                 voltage.append(capacitor.voltage)
                 if s == svs:
                     irrTrace.append(irrValue)
