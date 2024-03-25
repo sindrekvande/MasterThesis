@@ -40,8 +40,8 @@ def singleSim(
     sleepTime       = 10,       # in seconds
     day             = 11,       # which day of the month
     capacitorSize   = 476,      # in milliFarad
-    timeToSave      = 0.1,      # should reflect 64kB RAM to flash write at 64MHz
-    timeToRecover   = 0.1,
+    timeToSave      = 0.02,      # should reflect 64kB RAM to flash write at 64MHz
+    timeToRecover   = 0.01,
     thresholdStart  = 3.2,      # nRF: 1.7 V–3.6 V supply voltage range
     thresholdStop   = 2.2,
     thresholdDead   = 1.7,
@@ -56,6 +56,8 @@ def singleSim(
     communicatePower    = 9 * 10 ** -3 * 3
     sleepPower          = 1.9 * 10 ** -6 * 3
     deepSleepPower      = 0.5 * 10 ** -6 * 3
+    checkpointPower     = 3.5 * 10 ** -3 * 3
+    recoverPower        = 3.2 * 10 ** -3 * 3
     measureTime         = sampleSize/200
     comunicateTime      = btSize/10**6
 
@@ -70,8 +72,8 @@ def singleSim(
     irrTrace = ['Solar trace']
     timeResults = [[], [], [], []]
     barResults = []
-    energies = {'checkpoint'    : timeToSave,
-                'recover'       : timeToRecover,
+    energies = {'checkpoint'    : timeToSave * checkpointPower,
+                'recover'       : timeToRecover * recoverPower,
                 'measure'       : measurePower*measureTime,
                 'communicate'   : communicatePower*comunicateTime,
                 'sleep'         : sleepPower,
@@ -93,20 +95,25 @@ def singleSim(
                 if capacitor.voltage < thresholdDead:
                     dead = True
                 if not dead:
-                    if s == svs:
-                        energyUse += svsPower
+                    energyUse += svsPower * (s == svs)
                     if not deepSleep:
                         if not sleep:
                             measureCount -= 1
-                            energyUse += energies['measure']
-                            energyUse += energies['sleep']* (1 - (measureTime + comunicateTime * (measureCount <= 0)))
+                            energyUse += energies['measure'] + energies['sleep']* (1 - measureTime)
+                            timesMeasured +=1
                             if measureCount <= 0:
-                                energyUse += energies['communicate']
+                                energyUse += energies['communicate'] - energies['sleep'] * comunicateTime
                                 measureCount = sampleNum
+                                timesCommunicated += 1
                             if s == interval:
-                                energyUse += energies['checkpoint'] - energies['sleep'] * (timeToSave)
+                                energyUse += energies['checkpoint'] - energies['sleep'] * timeToSave
+                                timesCheckpointed += 1
                             elif s == adc:
                                 energyUse += energies['measure'] / sampleSize
+                                if (capacitor.voltage < thresholdStop):
+                                    energyUse += energies['checkpoint'] - energies['sleep'] * (timeToSave)
+                                    timesCheckpointed += 1
+                                    deepSleep = True
                             if sleepTime > 1:
                                 sleep = True
                                 sleepCount = sleepTime
@@ -116,19 +123,22 @@ def singleSim(
                             if sleepCount <= 0:
                                 sleep = False
                                 sleepCount = sleepTime
-                        if s == svs:
-                            energyUse += svsPower
-                        if capacitor.voltage < thresholdStop and s != interval:
-                            energyUse += energies['checkpoint'] - energies['sleep'] * (timeToSave)
-                            deepSleep = True
+                        if (capacitor.voltage < thresholdStop) and (s == svs):
+                                energyUse += energies['checkpoint'] - energies['sleep'] * (timeToSave)
+                                timesCheckpointed += 1
+                                deepSleep = True
+                        
                     else:
                         if capacitor.voltage > thresholdStart:
-                            energies += energies['recover'] + energies['deepsleep']*(1-timeToRecover)
+                            energyUse += energies['recover'] + energies['deepsleep']*(1-timeToRecover)
                             deepSleep = False
+                            timesRecovered += 1
                         else:
                             energyUse += energies['deepsleep']
                 else:
                     if capacitor.voltage > thresholdStart:
+                        energyUse += energies['recover']
+                        timesRecovered += 1
                         dead = False
                         deepSleep = False
                 capacitor.useEnergy(energyUse)
@@ -139,7 +149,7 @@ def singleSim(
         timeResults[sCount] = voltage
         if s == svs:
             timeResults[sCount + 1] = irrTrace
-        barResults.append([s, timesMeasured, timesCommunicated, timesCheckpointed, timesRecovered])
+        barResults.append([s, timesCheckpointed, timesRecovered, timesMeasured, timesCommunicated])
     del voltage, irrTrace, capacitor, timesMeasured, timesCommunicated, timesCheckpointed, timesRecovered
     return timeResults, barResults
 
@@ -173,7 +183,8 @@ def plotGraphs(barLoc, timeLoc, timeResults, barResults, metrics, params):
         ax[i].margins(x=0)
         ax[i].axhline(3.3, color='grey', ls='--')
         ax[i].axhline(params['start'], color='green', ls='--')
-        ax[i].axhline(params['stop'], color='orange', ls='--')
+        if i != 0:
+            ax[i].axhline(params['stop'], color='orange', ls='--')
         ax[i].axhline(1.7, color='red', ls='--')
     ax[3].plot(timeAxis, timeResults[3][1:], label=timeResults[3][0], color=('#ffae49' if params['season'] =='summer' else '#44a5c2' if params['season'] =='autumn' else '#024b7a'))
     ax[3].set(xlabel='Time of day', ylabel='Solar irradiance [W/m$^2$]', xticks=timeAxisTicks, ylim=[-10,1300])

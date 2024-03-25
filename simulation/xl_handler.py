@@ -9,9 +9,11 @@ def createExcel(wbName, headers):
     page.title = 'Simulation results'
     page.append(headers)
     page.freeze_panes = page['a2']
-    page.column_dimensions['I'].width = 70
-    page.column_dimensions['J'].width = 80
+    page.column_dimensions['j'].width = 70
+    page.column_dimensions['k'].width = 80
     page.column_dimensions['C'].width = 16
+    page.column_dimensions['D'].width = 13
+    page.column_dimensions['E'].width = 13
     page['A1'].font = Font(bold=True)
     page['B1'].font = Font(bold=True)
     page['C1'].font = Font(bold=True)
@@ -19,8 +21,10 @@ def createExcel(wbName, headers):
     page['E1'].font = Font(bold=True)
     page['F1'].font = Font(bold=True)
     page['G1'].font = Font(bold=True)
+    page['H1'].font = Font(bold=True)
     page['I1'].font = Font(bold=True)
     page['J1'].font = Font(bold=True)
+    page['K1'].font = Font(bold=True)
     wb.save(wbName)
 
 def writeExcel(wbName, parameters, barPlt, timePlt):
@@ -36,10 +40,11 @@ def writeExcel(wbName, parameters, barPlt, timePlt):
     page['E'+str(numrows)].alignment = Alignment(horizontal='center', vertical='center')
     page['F'+str(numrows)].alignment = Alignment(horizontal='center', vertical='center')
     page['G'+str(numrows)].alignment = Alignment(horizontal='center', vertical='center')
+    page['H'+str(numrows)].alignment = Alignment(horizontal='center', vertical='center')
     imgBar = xl.drawing.image.Image(barPlt)
-    imgBar.anchor = TwoCellAnchor(editAs='twoCell', _from= AnchorMarker(col=8, row=str(numrows-1)), to=AnchorMarker(col=9, row=str(numrows)))
+    imgBar.anchor = TwoCellAnchor(editAs='twoCell', _from= AnchorMarker(col=9, row=str(numrows-1)), to=AnchorMarker(col=10, row=str(numrows)))
     page.add_image(imgBar)
     imgTime = xl.drawing.image.Image(timePlt)
-    imgTime.anchor = TwoCellAnchor(editAs='twoCell', _from= AnchorMarker(col=9, row=str(numrows-1)), to=AnchorMarker(col=10, row=str(numrows)))
+    imgTime.anchor = TwoCellAnchor(editAs='twoCell', _from= AnchorMarker(col=10, row=str(numrows-1)), to=AnchorMarker(col=11, row=str(numrows)))
     page.add_image(imgTime)
     wb.save(wbName)
