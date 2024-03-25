@@ -68,41 +68,58 @@ def singleSim(
     #states = [measure, sleep, communicate, dead]
     nextState = measure
     irrTrace = ['Solar trace']
-    timeResults = [[]]
-    barResults = [[]]
+    timeResults = [[], [], [], []]
+    barResults = []
     energies = {'checkpoint'    : timeToSave,
                 'recover'       : timeToRecover,
                 'measure'       : measurePower*measureTime,
                 'communicate'   : communicatePower*comunicateTime,
                 'sleep'         : sleepPower,
                 'deepsleep'     : deepSleepPower}
-    for s in schemes:
+    for sCount, s in enumerate(schemes):
         capacitor = energyStorage(capacitorSize, scale)
         voltage = [s]
         timesMeasured = 0
         timesCommunicated = 0
         timesCheckpointed = 0
         timesRecovered = 0
+        sleepCount = sleepTime
+        measureCount = sampleNum
+        svsPower = 2.2 * 0.8 * 10 ** -6
         for _, irrValue in trace.itertuples():
             for i in range(60):
                 capacitor.addEnergy(irrValue)
                 energyUse = 0
+                if capacitor.voltage < thresholdDead:
+                    dead = True
                 if not dead:
-                    if capacitor.voltage < thresholdDead:
-                        dead = True
+                    if s == svs:
+                        energyUse += svsPower
                     if not deepSleep:
-                        if measure:
+                        if not sleep:
+                            measureCount -= 1
                             energyUse += energies['measure']
-                            energyUse += energies['sleep']* (1 - (measureTime + comunicateTime * communicate))
-                            if communicate:
+                            energyUse += energies['sleep']* (1 - (measureTime + comunicateTime * (measureCount <= 0)))
+                            if measureCount <= 0:
                                 energyUse += energies['communicate']
-                                communicate = False
+                                measureCount = sampleNum
                             if s == interval:
-                                energyUse += energies['checkpoint'] 
+                                energyUse += energies['checkpoint'] - energies['sleep'] * (timeToSave)
+                            elif s == adc:
+                                energyUse += energies['measure'] / sampleSize
+                            if sleepTime > 1:
+                                sleep = True
+                                sleepCount = sleepTime
                         else:
                             energyUse += energies['sleep']
+                            sleepCount -= 1
+                            if sleepCount <= 0:
+                                sleep = False
+                                sleepCount = sleepTime
+                        if s == svs:
+                            energyUse += svsPower
                         if capacitor.voltage < thresholdStop and s != interval:
-                            energyUse += energies['checkpoint']
+                            energyUse += energies['checkpoint'] - energies['sleep'] * (timeToSave)
                             deepSleep = True
                     else:
                         if capacitor.voltage > thresholdStart:
@@ -119,11 +136,11 @@ def singleSim(
                 if s == svs:
                     irrTrace.append(irrValue)
 
-        timeResults.append(voltage)
+        timeResults[sCount] = voltage
         if s == svs:
-            timeResults.append(irrValue)
+            timeResults[sCount + 1] = irrTrace
         barResults.append([s, timesMeasured, timesCommunicated, timesCheckpointed, timesRecovered])
-    del voltage, irrValue, capacitor, timesMeasured, timesCommunicated, timesCheckpointed, timesRecovered
+    del voltage, irrTrace, capacitor, timesMeasured, timesCommunicated, timesCheckpointed, timesRecovered
     return timeResults, barResults
 
 def plotGraphs(barLoc, timeLoc, timeResults, barResults, metrics, params):
@@ -171,7 +188,7 @@ def plotGraphs(barLoc, timeLoc, timeResults, barResults, metrics, params):
 def multiSim():
     headers = ['Season', 'Day', 'Capacitance [mF]', 'SampleNum', 'SampleSize', 'Sleep', 'Start', 'Stop', '', 'Resulting metrics', 'Time plot']
     metrics = ['Checkpointed', 'Recovered', 'Measured', 'Communicated']
-    simSetFile = 'simSet1'
+    simSetFile = 'simSet2'
     os.makedirs('simulation/results/'+simSetFile+'Results')
     resultLoc = 'simulation/results/'+simSetFile+'Results/'+simSetFile+'.xlsx'
 
@@ -192,7 +209,9 @@ def multiSim():
                                             thresholdStart  = row['start'],
                                             thresholdStop   = row['stop'],
                                             season          = row['season'])
-
-        plotGraphs(barLoc, timeLoc, timeResults, barResults, metrics)
+        
+        plotGraphs(barLoc, timeLoc, timeResults, barResults, metrics, row)
 
         xl.writeExcel(resultLoc, params, barLoc, timeLoc)
+
+multiSim()
