@@ -208,6 +208,23 @@ def plotGraphs(barLoc, timeLoc, timeResults, barResults, energyBar, metrics, par
     plt.cla()
     plt.close()
 
+    barWidth = 0.2
+    x = np.arange(len(metrics))
+    fig = plt.figure(figsize=(10,6))
+    colors = ['#0089B3', '#00556F', '#00C4FF']
+
+    for i in range(4):
+        plt.bar(x+barWidth*(i-1), barResults[i][1:], width=barWidth, label=barResults[i][0], color=colors[i])
+        for j, v in enumerate(barResults[i][1:]):
+            plt.text(j+barWidth*(i-1), v, str(v), color=colors[i], horizontalalignment='center', verticalalignment='bottom')
+    plt.xticks(x, metrics)
+    plt.ylabel('Number of times')
+    plt.xlabel('Metric')
+    plt.legend(loc='best')
+    plt.savefig(barLoc, bbox_inches="tight")
+    plt.cla()
+    plt.close()
+
     timeAxis = np.linspace(start=0, stop=24, num=len(timeResults[0][1:]))
     timeAxisTicks = np.arange(0, 24, step=1)
     fig = plt.figure(figsize=(10,7))
