@@ -61,9 +61,9 @@ def singleSim(
     measureTime         = sampleSize/200
     comunicateTime      = btSize/10**6
 
-    interval = 'iterval'
-    adc = 'adc'
-    svs = 'svs'
+    interval = 'Interval'
+    adc = 'ADC'
+    svs = 'SVS'
     schemes = [interval, adc, svs]
     trace = fh.file(season, day).brightnessDF
     measure, sleep, deepSleep, communicate, dead, checkpoint, recover = False, False, False, False, True, False, False
@@ -190,7 +190,7 @@ def singleSim(
     del voltage, irrTrace, capacitor, timesMeasured, timesCommunicated, timesCheckpointed, timesRecovered
     return timeResults, barResults, energyBar
 
-def plotGraphs(barLoc, timeLoc, timeResults, barResults, energyBar, metrics, params):
+def plotGraphs(barLoc, energyLoc, timeLoc, timeResults, barResults, energyBar, metrics, params):
     barWidth = 0.2
     x = np.arange(len(metrics))
     fig = plt.figure(figsize=(10,6))
@@ -208,20 +208,19 @@ def plotGraphs(barLoc, timeLoc, timeResults, barResults, energyBar, metrics, par
     plt.cla()
     plt.close()
 
-    barWidth = 0.2
-    x = np.arange(len(metrics))
-    fig = plt.figure(figsize=(10,6))
-    colors = ['#0089B3', '#00556F', '#00C4FF']
-
-    for i in range(4):
-        plt.bar(x+barWidth*(i-1), barResults[i][1:], width=barWidth, label=barResults[i][0], color=colors[i])
-        for j, v in enumerate(barResults[i][1:]):
-            plt.text(j+barWidth*(i-1), v, str(v), color=colors[i], horizontalalignment='center', verticalalignment='bottom')
-    plt.xticks(x, metrics)
-    plt.ylabel('Number of times')
-    plt.xlabel('Metric')
-    plt.legend(loc='best')
-    plt.savefig(barLoc, bbox_inches="tight")
+    x = np.arange(3)
+    fig = plt.figure(figsize=(6,6))
+    energyBar = [list(l) for l in zip(*energyBar)]
+    bot = [0]*len(energyBar[0])
+    for i in range(1, len(energyBar)-1):
+        plt.bar(x, energyBar[i], bottom=bot, width=.9)
+        bot = [a + b for a, b in zip(bot, energyBar[i])]
+    #plt.bar(x + 0.25, energyBar[-1], width=0.5)
+    plt.xticks(x, energyBar[0])
+    plt.ylabel('Energy use [J]')
+    plt.xlim(-1.5, 3.5)
+    #plt.legend(loc='best')
+    plt.savefig(energyLoc, bbox_inches="tight")
     plt.cla()
     plt.close()
 
@@ -254,6 +253,7 @@ def multiSim():
     headers = ['Season', 'Day', 'Capacitance [mF]', 'SampleNum', 'SampleSize', 'Sleep', 'Start', 'Stop', '', 'Resulting metrics', 'Time plot']
     metrics = ['Checkpointed', 'Recovered', 'Measured', 'Communicated']
     simSetFile = 'simSet2'
+    #os.rmdir('simulation/results/'+simSetFile+'Results')
     os.makedirs('simulation/results/'+simSetFile+'Results')
     resultLoc = 'simulation/results/'+simSetFile+'Results/'+simSetFile+'.xlsx'
 
@@ -278,6 +278,6 @@ def multiSim():
         
         plotGraphs(barLoc, energyLoc, timeLoc, timeResults, barResults, energyBar, metrics, row)
 
-        xl.writeExcel(resultLoc, params, barLoc, timeLoc)
+        xl.writeExcel(resultLoc, params, barLoc, energyLoc, timeLoc)
 
 multiSim()

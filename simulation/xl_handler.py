@@ -10,7 +10,8 @@ def createExcel(wbName, headers):
     page.append(headers)
     page.freeze_panes = page['a2']
     page.column_dimensions['j'].width = 70
-    page.column_dimensions['k'].width = 80
+    page.column_dimensions['k'].width = 50
+    page.column_dimensions['l'].width = 80
     page.column_dimensions['C'].width = 16
     page.column_dimensions['D'].width = 13
     page.column_dimensions['E'].width = 13
@@ -25,9 +26,10 @@ def createExcel(wbName, headers):
     page['I1'].font = Font(bold=True)
     page['J1'].font = Font(bold=True)
     page['K1'].font = Font(bold=True)
+    page['L1'].font = Font(bold=True)
     wb.save(wbName)
 
-def writeExcel(wbName, parameters, barPlt, timePlt):
+def writeExcel(wbName, parameters, barPlt, energyPlt, timePlt):
     wb = xl.load_workbook(wbName)
     page = wb.active
     page.append(parameters)
@@ -44,7 +46,10 @@ def writeExcel(wbName, parameters, barPlt, timePlt):
     imgBar = xl.drawing.image.Image(barPlt)
     imgBar.anchor = TwoCellAnchor(editAs='twoCell', _from= AnchorMarker(col=9, row=str(numrows-1)), to=AnchorMarker(col=10, row=str(numrows)))
     page.add_image(imgBar)
+    imgEnergy = xl.drawing.image.Image(energyPlt)
+    imgEnergy.anchor = TwoCellAnchor(editAs='twoCell', _from= AnchorMarker(col=10, row=str(numrows-1)), to=AnchorMarker(col=11, row=str(numrows)))
+    page.add_image(imgEnergy)
     imgTime = xl.drawing.image.Image(timePlt)
-    imgTime.anchor = TwoCellAnchor(editAs='twoCell', _from= AnchorMarker(col=10, row=str(numrows-1)), to=AnchorMarker(col=11, row=str(numrows)))
+    imgTime.anchor = TwoCellAnchor(editAs='twoCell', _from= AnchorMarker(col=11, row=str(numrows-1)), to=AnchorMarker(col=12, row=str(numrows)))
     page.add_image(imgTime)
     wb.save(wbName)
