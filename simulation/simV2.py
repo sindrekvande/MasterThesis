@@ -40,7 +40,7 @@ def singleSim(
     sleepTime       = 10,       # in seconds
     day             = 11,       # which day of the month
     capacitorSize   = 476,      # in milliFarad
-    timeToSave      = 0.02,      # should reflect 64kB RAM to flash write at 64MHz
+    timeToSave      = 0.056,      # should reflect 64kB RAM to flash write at 64MHz
     timeToRecover   = 0.01,
     thresholdStart  = 3.2,      # nRF: 1.7 V–3.6 V supply voltage range
     thresholdStop   = 2.2,
@@ -48,18 +48,18 @@ def singleSim(
     season          = 'winter',
     scale           = 3/1000):
 
-    btSize = sampleNum*sampleSize*12
+    btSize = sampleNum*sampleSize
     
     capacitorSize /= 1000
 
-    measurePower        = 8 * 10 ** -3 * 3
-    communicatePower    = 9 * 10 ** -3 * 3
-    sleepPower          = 1.9 * 10 ** -6 * 3
-    deepSleepPower      = 0.5 * 10 ** -6 * 3
-    checkpointPower     = 3.5 * 10 ** -3 * 3
-    recoverPower        = 3.2 * 10 ** -3 * 3
+    measurePower        = 4 * 10 ** -3 * 3
+    communicatePower    = 1.7 * 10 ** -3 * 3
+    sleepPower          = 2.15 * 10 ** -6 * 3
+    deepSleepPower      = 0.7 * 10 ** -6 * 3
+    checkpointPower     = 3.7 * 10 ** -3 * 3
+    recoverPower        = 3.4 * 10 ** -3 * 3
     measureTime         = sampleSize/200
-    comunicateTime      = btSize/10**6
+    comunicateTime      = btSize*0.053
 
     interval = 'Interval'
     adc = 'ADC'
@@ -98,7 +98,7 @@ def singleSim(
         deepSleepEnergy = 0
         totalEnergy = 0
         measureCount = sampleNum
-        svsPower = 2.2 * 0.8 * 10 ** -6
+        svsPower = 1.3 * 10 ** -3 * 3 #2.2 * 0.8 * 10 ** -6
         for _, irrValue in trace.itertuples():
             for i in range(60):
                 capacitor.addEnergy(irrValue)
