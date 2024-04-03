@@ -212,14 +212,15 @@ def plotGraphs(barLoc, energyLoc, timeLoc, timeResults, barResults, energyBar, m
     fig = plt.figure(figsize=(6,6))
     energyBar = [list(l) for l in zip(*energyBar)]
     bot = [0]*len(energyBar[0])
+    labels = ['measureUsed', 'measureSaved', 'communicate', 'checkpoint', 'checkpointCheck', 'recover', 'sleep', 'deepSleep']
     for i in range(1, len(energyBar)-1):
-        plt.bar(x, energyBar[i], bottom=bot, width=.9)
+        plt.bar(x, energyBar[i], bottom=bot, width=.9, label=labels[i-1])
         bot = [a + b for a, b in zip(bot, energyBar[i])]
     #plt.bar(x + 0.25, energyBar[-1], width=0.5)
     plt.xticks(x, energyBar[0])
     plt.ylabel('Energy use [J]')
     plt.xlim(-1.5, 3.5)
-    #plt.legend(loc='best')
+    plt.legend(loc='best')
     plt.savefig(energyLoc, bbox_inches="tight")
     plt.cla()
     plt.close()
@@ -250,7 +251,7 @@ def plotGraphs(barLoc, energyLoc, timeLoc, timeResults, barResults, energyBar, m
     plt.close()
 
 def multiSim():
-    headers = ['Season', 'Day', 'Capacitance [mF]', 'SampleNum', 'SampleSize', 'Sleep', 'Start', 'Stop', '', 'Resulting metrics', 'Time plot']
+    headers = ['Season', 'Day', 'Capacitance [mF]', 'SampleNum', 'SampleSize', 'Sleep', 'Start', 'Stop', '', 'Resulting metrics', 'Energy Use', 'Time plot']
     metrics = ['Checkpointed', 'Recovered', 'Measured', 'Communicated']
     simSetFile = 'simSet2'
     #os.rmdir('simulation/results/'+simSetFile+'Results')
