@@ -98,7 +98,7 @@ def singleSim(
         deepSleepEnergy = 0
         totalEnergy = 0
         measureCount = sampleNum
-        svsPower = 1.3 * 10 ** -3 * 3 #2.2 * 0.8 * 10 ** -6
+        svsPower = 0.7 * 10 ** -6 * 3 #2.2 * 0.8 * 10 ** -6
         for _, irrValue in trace.itertuples():
             for i in range(60):
                 capacitor.addEnergy(irrValue)
