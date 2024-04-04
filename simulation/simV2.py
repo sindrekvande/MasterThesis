@@ -253,7 +253,7 @@ def plotGraphs(barLoc, energyLoc, timeLoc, timeResults, barResults, energyBar, m
 def multiSim():
     headers = ['Season', 'Day', 'Capacitance [mF]', 'SampleNum', 'SampleSize', 'Sleep', 'Start', 'Stop', '', 'Resulting metrics', 'Energy Use', 'Time plot']
     metrics = ['Checkpointed', 'Recovered', 'Measured', 'Communicated']
-    simSetFile = 'simSet2'
+    simSetFile = 'simSet3'
     #os.rmdir('simulation/results/'+simSetFile+'Results')
     os.makedirs('simulation/results/'+simSetFile+'Results')
     resultLoc = 'simulation/results/'+simSetFile+'Results/'+simSetFile+'.xlsx'
