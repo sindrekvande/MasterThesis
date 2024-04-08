@@ -1,6 +1,5 @@
 #include "bt.h"
-
-extern float measure_value;
+#include "saadc.h"
 
 struct bt_conn *current_conn;
 
@@ -40,7 +39,7 @@ void on_notif_changed(enum bt_saadc_notifications_enabled status) {
     }
 }
 
-void saadc_handler(void) {
+void communicate_handler(void) {
     int err;
 
     if (!current_conn) {
@@ -48,19 +47,22 @@ void saadc_handler(void) {
         return;
     }
 
-    measure_value = measure_value * 100;
-    uint32_t measure_value_int = (uint32_t)measure_value;
-    printf("Measured value to be sent: %d\n", measure_value_int);
-    set_saadc_value(measure_value_int);
-    err = send_saadc_notification(current_conn, measure_value_int, sizeof(measure_value_int));
-    if (err) {
-        printf("Failed to send SAADC notification (Error: %d)\n", err);
+    for (int i = 0; i < NUM_SAMPLES; ++i) {
+        for (int j = 0; j < SAMPLE_SIZE; ++j) {
+            float value = communicate_samples[i][j] * 100; 
+            uint32_t value_int = (uint32_t)value;
+            //printf("Sending sample %d: %d\n", i, value_int);
+            set_saadc_value(value_int);
+            err = send_saadc_notification(current_conn, value_int, sizeof(value_int));
+            if (err) {
+                printf("Failed to send SAADC notification (Error: %d)\n", err);
+            }
+            k_sleep(K_MSEC(50));
+        }
     }
 }
 
 int advertisment_uninit(void) {
-    printf("UNINIT ADVERTISMENT\n");
-
     if (current_conn) {
         int err = bt_conn_disconnect(current_conn, BT_HCI_ERR_REMOTE_USER_TERM_CONN);
         if (err) {
@@ -76,16 +78,4 @@ int advertisment_uninit(void) {
         printf("Stopping advertising failed (err %d)\n", err);
     }
     return err;
-}
-
-void test_bt_service() {
-    printf("Starting BT service test...\n");
-
-    bluetooth_init(&bluetooth_callbacks, &remote_service_callbacks);
-    advertisment_init();
-
-    k_sleep(K_SECONDS(10));
-
-    advertisment_uninit();
-    printf("BT service test completed.\n");
 }

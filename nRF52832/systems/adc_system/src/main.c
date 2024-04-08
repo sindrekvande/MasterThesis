@@ -3,64 +3,76 @@
 #include "lpcomp.h"
 #include "bt.h"
 #include <zephyr/sys/poweroff.h>
+#include <zephyr/pm/state.h>
+#include <zephyr/pm/device.h>
+#include <zephyr/pm/pm.h>
+#include <zephyr/pm/policy.h>
+#include <zephyr/device.h>
 #include <nrfx_glue.h>
 
-struct k_timer my_timer;
+const struct device *dev = DEVICE_DT_GET(DT_CHOSEN(zephyr_console));
 
 device_state_t current_state = RECOVER;
+device_state_t next_state = MEASURE;
+uint32_t current_sample = 0;
 
 int main(void) {
     int err;
-
+   
     err = bluetooth_init(&bluetooth_callbacks, &remote_service_callbacks);
     if (err) {
         printf("Couldn't initialize Bluetooth. err: %d\n", err);
     }
 
-    k_timer_init(&my_timer, NULL, NULL);
-    saadc_init();
     nrfx_lpcomp_uninit();
 
     while (1) {
         switch (current_state) {
             case MEASURE:
                 saadc_measure();
+                if (current_sample == 10){
+                    next_state = COMMUNICATE;
+                } else {
+                    next_state = SLEEP;
+                }
                 saadc_storage_check();
                 break;
 
             case COMMUNICATE:
                 advertisment_init();
-                NRFX_DELAY_US(10000000);    // Wait for bluetooth connection.
-                saadc_handler();            // Send value if connnected
-                NRFX_DELAY_US(5000000);     // Give time to finish sending
+                k_sleep(K_SECONDS(5));      // Wait for bluetooth connection.
+                communicate_handler();            // Send value if connnected
                 advertisment_uninit();
-                NRFX_DELAY_US(100000);     // Give time to uninit adv
+                next_state = SLEEP;
                 saadc_storage_check();
                 break;
             
-            case SAVE:
-                //printf("SAVE CHECKPOINT\n");
+            case DEEP_SLEEP:
                 checkpoint_create();
-                lpcomp_init();
-                current_state = THRESHOLD_SLEEP;
+                lpcomp_wakeup_init();
+                printf("DEEP SLEEP\n");
+                sys_poweroff();
                 break;
             
             case RECOVER:
-                //printf("RECOVER CHECKPOINT\n");
-                checkpoint_recover();
-                current_state = MEASURE;
+                checkpoint_recover(); // Could have to comment out checkpoint_recover and trigger checkpoint_create to get bt working
+                current_state = next_state;
                 break;
 
-            case NORMAL_SLEEP:
-                printf("GOING TO SLEEP (10 minutes)\n");
-                k_timer_start(&my_timer, K_MSEC(5000), K_FOREVER);
-                __WFI();
-                current_state = MEASURE;
-                break;
+            case SLEEP:
+                err = pm_device_action_run(dev, PM_DEVICE_ACTION_SUSPEND);
+                if (err) {
+                    printk("pm_device_action_run() failed (%d)\n", err);
+                }
 
-            case THRESHOLD_SLEEP:
-                printf("GOING TO DEEP SLEEP\n");
-                sys_poweroff();
+                k_sleep(K_SECONDS(3));
+
+                err = pm_device_action_run(dev, PM_DEVICE_ACTION_RESUME);
+                if (err) {
+                    printk("pm_device_action_run() failed (%d)\n", err);
+                }
+
+                current_state = MEASURE;
                 break;
         }
     }

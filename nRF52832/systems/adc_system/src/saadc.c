@@ -1,12 +1,9 @@
 #include "saadc.h"
-#include "checkpoint.h"
-#include "stdio.h"
 
-float measure_value;
+float communicate_samples[NUM_SAMPLES][SAMPLE_SIZE];
 
-nrf_saadc_value_t samples[NUMBER_OF_CHANNELS];
-nrfx_saadc_channel_t channels[NUMBER_OF_CHANNELS] = 
-{
+nrf_saadc_value_t raw_samples[NUMBER_OF_CHANNELS];
+nrfx_saadc_channel_t channels[NUMBER_OF_CHANNELS] = {
     NRFX_SAADC_DEFAULT_CHANNEL_SE(NRF_SAADC_INPUT_AIN0, 0), 
     NRFX_SAADC_DEFAULT_CHANNEL_SE(NRF_SAADC_INPUT_AIN1, 1) 
 };
@@ -37,56 +34,101 @@ void saadc_init(void)
 }
 
 void saadc_measure() {
+    printk("START MEASURING\n");
     nrfx_err_t err_code;
- 
-    err_code = nrfx_saadc_buffer_set(samples, NUMBER_OF_CHANNELS);
-    handle_error(err_code);
 
-    err_code = nrfx_saadc_mode_trigger();
-    handle_error(err_code);
+    saadc_init();
+    
+    for (uint16_t i = 0; i < SAMPLE_SIZE; i++) {
+        err_code = nrfx_saadc_buffer_set(raw_samples, NUMBER_OF_CHANNELS);
+        handle_error(err_code);
 
-    measure_value = (samples[0] * 3.6f * 1000) / 4095; // Changed gain in header file!
-    printf("Measured value: %.2f V\n", measure_value);
+        err_code = nrfx_saadc_mode_trigger();
+        handle_error(err_code);
+
+        communicate_samples[current_sample][i] = (raw_samples[0] * 3.6f * 1000) / 4095; // Changed gain in header file!
+
+        printf("Measured value: %.2f mV\n", communicate_samples[current_sample][i]);     
+    }
+    printf("Current sample: %d\n", current_sample);
+    current_sample += 1;
+
+    // Uninint //
+    nrfx_saadc_uninit();
+    NRF_SAADC->INTENCLR = (SAADC_INTENCLR_END_Clear << SAADC_INTENCLR_END_Pos);
+    NVIC_ClearPendingIRQ(SAADC_IRQn);
+    // ---------------- //
+
+    // SAADC reset - Workaround //
+    volatile uint32_t temp1;
+    volatile uint32_t temp2;
+    volatile uint32_t temp3;
+
+    temp1 = *(volatile uint32_t *)0x40007640ul;
+    temp2 = *(volatile uint32_t *)0x40007644ul;
+    temp3 = *(volatile uint32_t *)0x40007648ul;
+
+    *(volatile uint32_t *)0x40007FFCul = 0ul;
+    *(volatile uint32_t *)0x40007FFCul;
+    *(volatile uint32_t *)0x40007FFCul = 1ul;
+
+    *(volatile uint32_t *)0x40007640ul = temp1;
+    *(volatile uint32_t *)0x40007644ul = temp2;
+    *(volatile uint32_t *)0x40007648ul = temp3;
+    // ---------------- //
+    
 }
 
 void saadc_storage_check() {
     nrfx_err_t err_code;
- 
-    err_code = nrfx_saadc_buffer_set(samples, NUMBER_OF_CHANNELS);
+
+    saadc_init();
+    
+    err_code = nrfx_saadc_buffer_set(raw_samples, NUMBER_OF_CHANNELS);
     handle_error(err_code);
 
     err_code = nrfx_saadc_mode_trigger();
     handle_error(err_code);
 
-    float storage_current = (samples[1] * 3.6f * 1000) / 4095; // Changed gain in header file!
+    // Uninint //
+    nrfx_saadc_uninit();
+    NRF_SAADC->INTENCLR = (SAADC_INTENCLR_END_Clear << SAADC_INTENCLR_END_Pos);
+    NVIC_ClearPendingIRQ(SAADC_IRQn);
+    // ---------------- //
+
+    // SAADC reset - Workaround //
+    volatile uint32_t temp1;
+    volatile uint32_t temp2;
+    volatile uint32_t temp3;
+
+    temp1 = *(volatile uint32_t *)0x40007640ul;
+    temp2 = *(volatile uint32_t *)0x40007644ul;
+    temp3 = *(volatile uint32_t *)0x40007648ul;
+
+    *(volatile uint32_t *)0x40007FFCul = 0ul;
+    *(volatile uint32_t *)0x40007FFCul;
+    *(volatile uint32_t *)0x40007FFCul = 1ul;
+
+    *(volatile uint32_t *)0x40007640ul = temp1;
+    *(volatile uint32_t *)0x40007644ul = temp2;
+    *(volatile uint32_t *)0x40007648ul = temp3;
+    // ---------------- //
+
+    float storage_current = (raw_samples[1] * 3.6f * 1000) / 4095; // Changed gain in header file!
     printf("Stored current: %.2f mV - STATE: %d\n", storage_current, current_state);
 
-    if (current_state == MEASURE && storage_current < SLEEP_THRESHOLD) {
-        printf("Current too low, going to SAVE.\n");
-        current_state = SAVE;
-    } else if (current_state == COMMUNICATE && storage_current < SLEEP_THRESHOLD) {
-        printf("Current too low, going to SAVE.\n");
-        current_state = SAVE;
-    } else if (current_state == MEASURE && storage_current >= SLEEP_THRESHOLD) {
-        printf("Measure completed, going to COMMUNICATE.\n");
+    if (storage_current < SLEEP_THRESHOLD) {
+        printf("Current too low, checkpoint.\n");
+        current_state = DEEP_SLEEP;
+    } else if (current_state == MEASURE && storage_current >= SLEEP_THRESHOLD && current_sample == 10) {
+        printf("Measure completed, COMMUNICATE.\n");
+        current_sample = 0;
         current_state = COMMUNICATE;
-    } else if (current_state == COMMUNICATE && storage_current >= SLEEP_THRESHOLD) {
-        printf("Communicate completed, going to NORMAL_SLEEP.\n");
-        current_state = NORMAL_SLEEP;
+    } else if (current_state == MEASURE && storage_current >= SLEEP_THRESHOLD && current_sample != 10) {
+        printf("Measure completed, SLEEP.\n");
+        current_state = SLEEP;
+    }else if (current_state == COMMUNICATE && storage_current >= SLEEP_THRESHOLD) {
+        printf("Communicate completed, SLEEP.\n");
+        current_state = SLEEP;
     }
-}
-
-void test_saadc_service() {
-    printf("Starting SAADC service test...\n");
-
-    saadc_init();
-
-    // Continuously measure for a fixed duration (10 seconds)
-    uint32_t start_time = k_uptime_get_32();
-    while (k_uptime_get_32() - start_time < 10000) {
-        saadc_measure();
-        k_sleep(K_MSEC(100));
-    }
-
-    printf("SAADC service test completed.\n");
 }

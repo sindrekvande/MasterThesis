@@ -13,8 +13,8 @@ void lpcomp_event_handler(nrf_lpcomp_event_t event_type) {
     NRF_LPCOMP->EVENTS_READY = 0;
 }
 
-void lpcomp_init(void) {   
-    printf("#### LPCOMP INIT ####\n");
+void lpcomp_wakeup_init() {   
+    printf("#### LPCOMP WAKEUP INIT ####\n");
     
     nrfx_err_t err_code;
 
@@ -24,17 +24,9 @@ void lpcomp_init(void) {
     config.config.detection = NRF_LPCOMP_DETECT_UP;
 
     err_code = nrfx_lpcomp_init(&config, NULL);
-    handle_error(err_code);
+    if (err_code != NRFX_SUCCESS){
+        printf("Error (0x%X)\n", err_code); 
+    }
 
     nrfx_lpcomp_enable();
-}
-
-void test_lpcomp_service() {
-    printf("Starting LPCOMP service test...\n");
-
-    lpcomp_init();
-
-    k_sleep(K_SECONDS(10));
-
-    printf("LPCOMP service test completed.\n");
 }

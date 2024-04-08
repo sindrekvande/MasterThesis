@@ -12,17 +12,21 @@
 
 #define SLEEP_THRESHOLD 1000 // mV
 #define WAKE_UP_THRESHOLD 1500 // mV
+#define NUM_SAMPLES 10
+#define SAMPLE_SIZE 10
 
 typedef enum {
     MEASURE,
     COMMUNICATE,
-    SAVE,
+    DEEP_SLEEP,
     RECOVER,
-    NORMAL_SLEEP,
-    THRESHOLD_SLEEP,
+    SLEEP,
 } device_state_t;
 
 extern device_state_t current_state;
+extern device_state_t next_state;
+extern float communicate_samples[NUM_SAMPLES][SAMPLE_SIZE];
+extern uint32_t current_sample;
 
 void handle_error(nrfx_err_t error_code);
 
@@ -31,7 +35,5 @@ void saadc_init(void);
 void saadc_measure(void);
 
 void saadc_storage_check(void);
-
-void test_saadc_service(void);
 
 #endif

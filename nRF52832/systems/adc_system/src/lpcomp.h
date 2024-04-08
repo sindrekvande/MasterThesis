@@ -3,6 +3,4 @@
 
 void lpcomp_event_handler(nrf_lpcomp_event_t event);
 
-void lpcomp_init(void);
-
-void test_lpcomp_service(void);
+void lpcomp_wakeup_init(void);

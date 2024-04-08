@@ -105,10 +105,15 @@ int bluetooth_init(struct bt_conn_cb *bt_cb, struct bt_remote_service_cb *remote
 }
 
 int advertisment_init(void) {
-    int err;
     printf("INIT ADVERTISMENT\n");
 
-    err = bt_le_adv_start(BT_LE_ADV_CONN, ad, ARRAY_SIZE(ad), sd, ARRAY_SIZE(sd));
+    const struct bt_le_adv_param adv_param = {
+        .options = BT_LE_ADV_OPT_CONNECTABLE,
+        .interval_min = BT_GAP_ADV_FAST_INT_MIN_2,
+        .interval_max = BT_GAP_ADV_FAST_INT_MAX_2,
+    };
+
+    int err = bt_le_adv_start(&adv_param, ad, ARRAY_SIZE(ad), sd, ARRAY_SIZE(sd));
     if (err){
         printf("couldn't start advertising (err = %d)\n", err);
         return err;

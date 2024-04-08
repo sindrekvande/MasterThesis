@@ -1,10 +1,5 @@
-#include <zephyr/kernel.h>
-#include <zephyr/drivers/flash.h>
-#include <zephyr/storage/flash_map.h>
-#include <zephyr/device.h>
-#include <zephyr/devicetree.h>
-
 #include "checkpoint.h"
+#include "saadc.h"
 
 const struct device *flash_dev = PARTITION_DEVICE;
 uint32_t checkpoint_data[CHECKPOINT_WORDS] = {0};
@@ -47,6 +42,9 @@ int checkpoint_recover() {
 void get_program_state(uint32_t * buf) { // Number of stored values needs to match CHECKPOINT_WORDS
     printk("#### GET PROGRAM STATE ####\n");
 
+    buf[17] = next_state;
+    buf[18] = current_sample;
+
     __asm__ volatile("MOV %0, R0" : "=r" (buf[0]) : : );
     __asm__ volatile("MOV %0, R1" : "=r" (buf[1]) : : );
     __asm__ volatile("MOV %0, R2" : "=r" (buf[2]) : : );
@@ -65,10 +63,17 @@ void get_program_state(uint32_t * buf) { // Number of stored values needs to mat
     __asm__ volatile("MRS %0, PSP\n": "=r" (buf[14]) : : );
     __asm__ volatile("MOV %0, LR\n": "=r" (buf[15]) : : );
     __asm__ volatile("MOV %0, PC\n": "=r" (buf[16]) : : );
+
+    printk("CS get: %d\n", buf[18]);
 }
 
 void set_program_state(uint32_t * buf) {
     printk("#### SET PROGRAM STATE ####\n");
+
+    next_state = buf[17];
+    current_sample = buf[18]; // Could have to set current_sample to 0, if it is stuck over 10
+    //next_state = 0;
+    //current_sample = 0;
 
     __asm__ volatile("MOV R0, %0" : : "r" (buf[0]) : );
     __asm__ volatile("MOV R1, %0" : : "r" (buf[1]) : );
@@ -84,10 +89,10 @@ void set_program_state(uint32_t * buf) {
     __asm__ volatile("MOV R11, %0" : : "r" (buf[11]) : );
     __asm__ volatile("MOV R12, %0" : : "r" (buf[12]) : );
 
-    //__asm__ volatile("MSR MSP, %0\n": : "r" (buf[13]) : );
-    //__asm__ volatile("MSR PSP, %0\n": : "r" (buf[14]) : ); // This recover does not work for nRF52840, sometimes?
-    //__asm__ volatile("MOV LR, %0\n": : "r" (buf[15]) : ); // This recover does not work for nRF52832, sometimes?
-    //__asm__ volatile("MOV PC, %0\n": : "r" (buf[16]) : );
+    __asm__ volatile("MSR MSP, %0\n": : "r" (buf[13]) : );
+    __asm__ volatile("MSR PSP, %0\n": : "r" (buf[14]) : ); // This recover does not work for nRF52840, sometimes?
+    __asm__ volatile("MOV LR, %0\n": : "r" (buf[15]) : ); // This recover does not work for nRF52832, sometimes?
+    __asm__ volatile("MOV PC, %0\n": : "r" (buf[16]) : );
 }
 
 int save_ram_to_flash() {
@@ -127,14 +132,4 @@ int retrieve_ram_from_flash() {
         offset += sizeof(uint32_t);
     }
     return 0;
-}
-
-void test_checkpoint_service() {
-    printf("Starting Checkpoint service test...\n");
-
-    checkpoint_create();
-    k_sleep(K_SECONDS(5));
-    checkpoint_recover();
-
-    printf("Checkpoint service test completed.\n");
 }
