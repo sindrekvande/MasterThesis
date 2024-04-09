@@ -40,8 +40,8 @@ def singleSim(
     sleepTime       = 10,       # in seconds
     day             = 11,       # which day of the month
     capacitorSize   = 476,      # in milliFarad
-    timeToSave      = 0.056,      # should reflect 64kB RAM to flash write at 64MHz
-    timeToRecover   = 0.01,
+    timeToSave      = 1.152,      # should reflect 64kB RAM to flash write at 64MHz
+    timeToRecover   = 0.035,
     thresholdStart  = 3.2,      # nRF: 1.7 V–3.6 V supply voltage range
     thresholdStop   = 2.2,
     thresholdDead   = 1.7,
@@ -54,10 +54,10 @@ def singleSim(
 
     measurePower        = 4 * 10 ** -3 * 3
     communicatePower    = 1.7 * 10 ** -3 * 3
-    sleepPower          = 2.15 * 10 ** -6 * 3
+    sleepPower          = 2.4 * 10 ** -6 * 3
     deepSleepPower      = 0.7 * 10 ** -6 * 3
-    checkpointPower     = 3.7 * 10 ** -3 * 3
-    recoverPower        = 3.4 * 10 ** -3 * 3
+    checkpointPower     = 3.5 * 10 ** -3 * 3
+    recoverPower        = 3.7 * 10 ** -3 * 3
     measureTime         = sampleSize/200
     comunicateTime      = btSize*0.053
 
@@ -73,12 +73,13 @@ def singleSim(
     timeResults = [[], [], [], []]
     barResults = []
     energyBar = []
-    energies = {'checkpoint'    : timeToSave * checkpointPower,
-                'recover'       : timeToRecover * recoverPower,
+    energies = {'checkpoint'    : (timeToSave + 0.0059) * checkpointPower,
+                'recover'       : (timeToRecover + 0.0026) * recoverPower,
                 'measure'       : measurePower*measureTime,
                 'communicate'   : communicatePower*comunicateTime,
                 'sleep'         : sleepPower,
-                'deepsleep'     : deepSleepPower}
+                'deepsleep'     : deepSleepPower,
+                'svspower'      : 0.5 * 10 ** -6 * 3} #2.2 * 0.8 * 10 ** -6}
     for sCount, s in enumerate(schemes):
         capacitor = energyStorage(capacitorSize, scale)
         voltage = [s]
@@ -98,7 +99,7 @@ def singleSim(
         deepSleepEnergy = 0
         totalEnergy = 0
         measureCount = sampleNum
-        svsPower = 0.7 * 10 ** -6 * 3 #2.2 * 0.8 * 10 ** -6
+        
         for _, irrValue in trace.itertuples():
             for i in range(60):
                 capacitor.addEnergy(irrValue)
@@ -107,8 +108,8 @@ def singleSim(
                     dead = True
                 if not dead:
                     if s == svs:
-                        energyUse += svsPower
-                        checkpointCheckEnergy += svsPower
+                        energyUse += energies['svspower']
+                        checkpointCheckEnergy += energies['svspower']
                     if not deepSleep:
                         if not sleep:
                             measureCount -= 1
@@ -253,7 +254,7 @@ def plotGraphs(barLoc, energyLoc, timeLoc, timeResults, barResults, energyBar, m
 def multiSim():
     headers = ['Season', 'Day', 'Capacitance [mF]', 'SampleNum', 'SampleSize', 'Sleep', 'Start', 'Stop', '', 'Resulting metrics', 'Energy Use', 'Time plot']
     metrics = ['Checkpointed', 'Recovered', 'Measured', 'Communicated']
-    simSetFile = 'simSet3'
+    simSetFile = 'simSet4'
     #os.rmdir('simulation/results/'+simSetFile+'Results')
     os.makedirs('simulation/results/'+simSetFile+'Results')
     resultLoc = 'simulation/results/'+simSetFile+'Results/'+simSetFile+'.xlsx'
