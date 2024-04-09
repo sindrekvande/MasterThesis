@@ -1,10 +1,5 @@
-#include <zephyr/kernel.h>
-#include <zephyr/drivers/flash.h>
-#include <zephyr/storage/flash_map.h>
-#include <zephyr/device.h>
-#include <zephyr/devicetree.h>
-
 #include "checkpoint.h"
+#include "saadc.h"
 
 const struct device *flash_dev = PARTITION_DEVICE;
 uint32_t checkpoint_data[CHECKPOINT_WORDS] = {0};
@@ -41,11 +36,15 @@ int checkpoint_recover() {
 		//printk("Read 0x%08X, from address 0x%08X\n", checkpoint_data[i], offset + (i * sizeof(uint32_t)));
     }
     set_program_state(checkpoint_data);
-    return retrieve_ram_from_flash();
+    //return retrieve_ram_from_flash();
+    return 1;
 }
 
 void get_program_state(uint32_t * buf) { // Number of stored values needs to match CHECKPOINT_WORDS
     printk("#### GET PROGRAM STATE ####\n");
+
+    buf[17] = next_state;
+    buf[18] = current_sample;
 
     __asm__ volatile("MOV %0, R0" : "=r" (buf[0]) : : );
     __asm__ volatile("MOV %0, R1" : "=r" (buf[1]) : : );
@@ -70,6 +69,11 @@ void get_program_state(uint32_t * buf) { // Number of stored values needs to mat
 void set_program_state(uint32_t * buf) {
     printk("#### SET PROGRAM STATE ####\n");
 
+    next_state = buf[17];
+    current_sample = buf[18]; // Could have to set current_sample to 0, if it is stuck over 10
+    //next_state = 0;
+    //current_sample = 0;
+
     __asm__ volatile("MOV R0, %0" : : "r" (buf[0]) : );
     __asm__ volatile("MOV R1, %0" : : "r" (buf[1]) : );
     __asm__ volatile("MOV R2, %0" : : "r" (buf[2]) : );
@@ -85,8 +89,8 @@ void set_program_state(uint32_t * buf) {
     __asm__ volatile("MOV R12, %0" : : "r" (buf[12]) : );
 
     __asm__ volatile("MSR MSP, %0\n": : "r" (buf[13]) : );
-    //__asm__ volatile("MSR PSP, %0\n": : "r" (buf[14]) : ); // This recover does not work for some reason
-    __asm__ volatile("MOV LR, %0\n": : "r" (buf[15]) : );
+    __asm__ volatile("MSR PSP, %0\n": : "r" (buf[14]) : ); // This recover does not work for nRF52840, sometimes?
+    __asm__ volatile("MOV LR, %0\n": : "r" (buf[15]) : ); // This recover does not work for nRF52832, sometimes?
     __asm__ volatile("MOV PC, %0\n": : "r" (buf[16]) : );
 }
 
@@ -127,12 +131,4 @@ int retrieve_ram_from_flash() {
         offset += sizeof(uint32_t);
     }
     return 0;
-}
-
-void checkpoint_test_flash() {
-    checkpoint_create();
-    printk("\n");
-    checkpoint_recover();
-    printk("\n");
-    printk("DONE\n");
 }

@@ -1,6 +1,5 @@
 #include "bt.h"
-
-uint8_t saadc_value = 0;
+#include "saadc.h"
 
 struct bt_conn *current_conn;
 
@@ -40,7 +39,7 @@ void on_notif_changed(enum bt_saadc_notifications_enabled status) {
     }
 }
 
-void saadc_handler(void) {
+void communicate_handler(void) {
     int err;
 
     if (!current_conn) {
@@ -48,22 +47,22 @@ void saadc_handler(void) {
         return;
     }
 
-    if(saadc_value < 5) {
-        saadc_value += 1;
-    } else {
-        saadc_value = 0;
-    }
-
-    set_saadc_value(saadc_value);
-    err = send_saadc_notification(current_conn, saadc_value, 1);
-    if (err) {
-        printf("Failed to send SAADC notification (Error: %d)\n", err);
+    for (int i = 0; i < NUM_SAMPLES; ++i) {
+        for (int j = 0; j < SAMPLE_SIZE; ++j) {
+            float value = communicate_samples[i][j] * 100; 
+            uint32_t value_int = (uint32_t)value;
+            //printf("Sending sample %d: %d\n", i, value_int);
+            set_saadc_value(value_int);
+            err = send_saadc_notification(current_conn, value_int, sizeof(value_int));
+            if (err) {
+                printf("Failed to send SAADC notification (Error: %d)\n", err);
+            }
+            k_sleep(K_MSEC(50));
+        }
     }
 }
 
 int advertisment_uninit(void) {
-    printf("UNINIT ADVERTISMENT\n");
-
     if (current_conn) {
         int err = bt_conn_disconnect(current_conn, BT_HCI_ERR_REMOTE_USER_TERM_CONN);
         if (err) {

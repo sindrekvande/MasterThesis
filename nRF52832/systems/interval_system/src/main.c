@@ -4,10 +4,18 @@
 #include "lpcomp.h"
 #include "saadc.h"
 #include "bt.h"
+#include <zephyr/pm/state.h>
+#include <zephyr/pm/device.h>
+#include <zephyr/pm/pm.h>
+#include <zephyr/pm/policy.h>
+#include <zephyr/device.h>
+#include <nrfx_glue.h>
 
-struct k_timer my_timer;
+const struct device *dev = DEVICE_DT_GET(DT_CHOSEN(zephyr_console));
 
 device_state_t current_state = RECOVER;
+device_state_t next_state = MEASURE;
+uint32_t current_sample = 0;
 
 int main(void) {
     int err;
@@ -17,42 +25,52 @@ int main(void) {
         printf("Couldn't initialize Bluetooth. err: %d\n", err);
     }
 
-    k_timer_init(&my_timer, NULL, NULL);
-    saadc_init();
-    nrfx_lpcomp_uninit();
+    //lpcomp_wakeup_init();
 
     while(1) {
         switch (current_state) {
             case MEASURE:
                 saadc_measure();
+                if (current_sample == 10){
+                    current_sample = 0;
+                    next_state = COMMUNICATE;
+                    current_state = COMMUNICATE;
+                } else {
+                    next_state = SLEEP;
+                    current_state = SLEEP;
+                }
                 checkpoint_create();
                 break;
             
             case COMMUNICATE:
                 advertisment_init();
-                NRFX_DELAY_US(20000000);
+                k_sleep(K_SECONDS(5));      // Wait for bluetooth connection.
+                communicate_handler();            // Send value if connnected
                 advertisment_uninit();
-                checkpoint_create();
-                break;
-
-            case SAVE:
+                next_state = SLEEP;
+                current_state = SLEEP;
                 break;
             
             case RECOVER:
-                printf("RECOVER CHECKPOINT\n");
-                //checkpoint_recover();
-                current_state = MEASURE;
+                checkpoint_recover();
+                current_state = next_state;
                 break;
 
-            case NORMAL_SLEEP:                
-                printf("GOING TO SLEEP (10 minutes)\n");
-                k_timer_start(&my_timer, K_MSEC(20000), K_FOREVER);
-                __WFI();
-                current_state = MEASURE;
-                break;
+            case SLEEP:
+                printk("SLEEP\n");
+                err = pm_device_action_run(dev, PM_DEVICE_ACTION_SUSPEND);
+                if (err) {
+                    printk("pm_device_action_run() failed (%d)\n", err);
+                }
 
-            case THRESHOLD_SLEEP:
-            
+                k_sleep(K_SECONDS(3));
+
+                err = pm_device_action_run(dev, PM_DEVICE_ACTION_RESUME);
+                if (err) {
+                    printk("pm_device_action_run() failed (%d)\n", err);
+                }
+
+                current_state = MEASURE;                
                 break;
         }
     }

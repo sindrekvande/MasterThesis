@@ -1,6 +1,7 @@
 #ifndef SAADC_H
 #define SAADC_H
 
+#include <zephyr/kernel.h>
 #include <stdio.h>
 #include <stdbool.h>
 #include <stdint.h>
@@ -11,17 +12,20 @@
 
 #define SLEEP_THRESHOLD 1000 // mV
 #define WAKE_UP_THRESHOLD 1500 // mV
+#define NUM_SAMPLES 10
+#define SAMPLE_SIZE 10
 
 typedef enum {
     MEASURE,
     COMMUNICATE,
-    SAVE,
     RECOVER,
-    NORMAL_SLEEP,
-    THRESHOLD_SLEEP,
+    SLEEP,
 } device_state_t;
 
 extern device_state_t current_state;
+extern device_state_t next_state;
+extern float communicate_samples[NUM_SAMPLES][SAMPLE_SIZE];
+extern uint32_t current_sample;
 
 void handle_error(nrfx_err_t error_code);
 

@@ -1,16 +1,12 @@
+#ifndef LPCOMP_H
+#define LPCOMP_H
+
 #include <nrfx_lpcomp.h>
 
-typedef enum {
-    MEASURE,
-    COMMUNICATE,
-    SAVE,
-    RECOVER,
-    NORMAL_SLEEP,
-    THRESHOLD_SLEEP,
-} device_state_t;
+/** @brief Initializes the LPCOMP component. **/
+void lpcomp_wakeup_init(void);
 
-extern device_state_t current_state;
-
+/** @brief Handles LPCOMP events. **/
 void lpcomp_event_handler(nrf_lpcomp_event_t event);
 
-void lpcomp_wakeup_init(void);
+#endif
