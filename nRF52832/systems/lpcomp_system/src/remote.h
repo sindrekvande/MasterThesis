@@ -28,8 +28,8 @@ struct bt_remote_service_cb {
 	void (*notif_changed)(enum bt_saadc_notifications_enabled status);
 };
 
-int send_saadc_notification(struct bt_conn *conn, uint8_t value, uint16_t length);
-void set_saadc_value(uint8_t adc_value);
+int send_saadc_notification(struct bt_conn *conn, uint32_t value, uint16_t length);
+void set_saadc_value(uint32_t adc_value);
 int bluetooth_init(struct bt_conn_cb *bt_cb, struct bt_remote_service_cb *remote_cb);
 int advertisment_init(void); 
 

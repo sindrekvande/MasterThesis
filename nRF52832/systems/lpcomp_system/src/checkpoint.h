@@ -1,11 +1,11 @@
 #ifndef CHECKPOINT_H
 #define CHECKPOINT_H
 
-//#include <zephyr/kernel.h>
-//#include <zephyr/drivers/flash.h>
-//#include <zephyr/storage/flash_map.h>
-//#include <zephyr/device.h>
-//#include <zephyr/devicetree.h>
+#include <zephyr/kernel.h>
+#include <zephyr/drivers/flash.h>
+#include <zephyr/storage/flash_map.h>
+#include <zephyr/device.h>
+#include <zephyr/devicetree.h>
 #include <stdio.h>  
 #include <stdint.h>
 
@@ -19,13 +19,10 @@
 #define PARTITION_DEVICE	FIXED_PARTITION_DEVICE(PARTITION)
 
 #define FLASH_PAGE_SIZE   4096 // Correct
-#define CHECKPOINT_WORDS    17 // Number of registers
+#define CHECKPOINT_WORDS    19 // Number of registers
 
-#define RAM_AND_FLASH_OFFSET 0x00001000 // Correct
-
-#define RAM_START   0x20000100 // Correct
-#define RAM_END     0x20000200
-//#define RAM_END     0x20038000 // Correct
+#define RAM_START   0x20000000 // Correct
+#define RAM_END     0x20000010
 
 /**
  * @brief Creates checkpoint for current tasks.

@@ -5,7 +5,7 @@ static K_SEM_DEFINE(bt_init_ok, 0, 1);
 #define DEVICE_NAME CONFIG_BT_DEVICE_NAME
 #define DEVICE_NAME_LEN (sizeof(DEVICE_NAME)-1)
 
-static uint8_t saadc_value = 0;
+static uint32_t saadc_value = 0;
 static struct bt_remote_service_cb remote_service_callbacks;
 enum bt_saadc_notifications_enabled notifications_enabled;
 
@@ -62,7 +62,7 @@ void on_sent(struct bt_conn *conn, void *user_data) {
 
 /* Remote controller functions */
 
-int send_saadc_notification(struct bt_conn *conn, uint8_t value, uint16_t length) {
+int send_saadc_notification(struct bt_conn *conn, uint32_t value, uint16_t length) {
     int err = 0;
 
     struct bt_gatt_notify_params params = {0};
@@ -78,7 +78,7 @@ int send_saadc_notification(struct bt_conn *conn, uint8_t value, uint16_t length
     return err;
 }
 
-void set_saadc_value(uint8_t adc_value) {
+void set_saadc_value(uint32_t adc_value) {
     saadc_value = adc_value;
 }
 
@@ -105,10 +105,15 @@ int bluetooth_init(struct bt_conn_cb *bt_cb, struct bt_remote_service_cb *remote
 }
 
 int advertisment_init(void) {
-    int err;
     printf("INIT ADVERTISMENT\n");
 
-    err = bt_le_adv_start(BT_LE_ADV_CONN, ad, ARRAY_SIZE(ad), sd, ARRAY_SIZE(sd));
+    const struct bt_le_adv_param adv_param = {
+        .options = BT_LE_ADV_OPT_CONNECTABLE,
+        .interval_min = BT_GAP_ADV_FAST_INT_MIN_2,
+        .interval_max = BT_GAP_ADV_FAST_INT_MAX_2,
+    };
+
+    int err = bt_le_adv_start(&adv_param, ad, ARRAY_SIZE(ad), sd, ARRAY_SIZE(sd));
     if (err){
         printf("couldn't start advertising (err = %d)\n", err);
         return err;

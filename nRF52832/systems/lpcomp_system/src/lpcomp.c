@@ -1,22 +1,21 @@
 #include "lpcomp.h"
+#include "saadc.h"
 #include "checkpoint.h"
-
-void handle_error(nrfx_err_t error_code) {
-    if (error_code!= NRFX_SUCCESS)
-    {
-        printf("Error (0x%X)\n", error_code); 
-    }
-}
+#include <zephyr/sys/poweroff.h>
 
 void lpcomp_event_handler(nrf_lpcomp_event_t event_type) {
+    pm_device_action_run(dev, PM_DEVICE_ACTION_RESUME);
     if (NRF_LPCOMP->EVENTS_DOWN == 1) {
-        printf("GO TO SLEEP\n");
+        printk("DEEP SLEEP\n");
         nrfx_lpcomp_uninit();
         lpcomp_wakeup_init();
+        checkpoint_create();
+        sys_poweroff();
+        //lpcomp_event = 1;
+        //current_state = DEEP_SLEEP;
         NRF_LPCOMP->EVENTS_DOWN = 0;
-        current_state = SAVE;
     }
-    // Clear unused interrupt events in case 
+    // Clear unused interrupt events in case
     NRF_LPCOMP->EVENTS_CROSS = 0;
     NRF_LPCOMP->EVENTS_UP = 0;
     NRF_LPCOMP->EVENTS_READY = 0;
@@ -29,7 +28,7 @@ void lpcomp_wakeup_init(void) {
 
     IRQ_DIRECT_CONNECT(COMP_LPCOMP_IRQn, 4, lpcomp_event_handler, 0);
 
-    nrfx_lpcomp_config_t config = NRFX_LPCOMP_DEFAULT_CONFIG(NRF_LPCOMP_INPUT_3); // Threshold 1.5V
+    nrfx_lpcomp_config_t config = NRFX_LPCOMP_DEFAULT_CONFIG(NRF_LPCOMP_INPUT_1); // Threshold 1.5V
     config.config.detection = NRF_LPCOMP_DETECT_UP;
 
     err_code = nrfx_lpcomp_init(&config, NULL);
@@ -45,7 +44,7 @@ void lpcomp_idle_init(void) {
 
     IRQ_DIRECT_CONNECT(COMP_LPCOMP_IRQn, 4, lpcomp_event_handler, 0);
 
-    nrfx_lpcomp_config_t config = NRFX_LPCOMP_DEFAULT_CONFIG(NRF_LPCOMP_INPUT_3);
+    nrfx_lpcomp_config_t config = NRFX_LPCOMP_DEFAULT_CONFIG(NRF_LPCOMP_INPUT_1);
     config.config.detection = NRF_LPCOMP_DETECT_DOWN;
     config.config.reference = NRF_LPCOMP_REF_SUPPLY_2_8; // Threshold 0.75V
 

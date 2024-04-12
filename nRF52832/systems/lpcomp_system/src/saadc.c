@@ -1,6 +1,8 @@
 #include "saadc.h"
 
-nrf_saadc_value_t samples[NUMBER_OF_CHANNELS];
+float communicate_samples[NUM_SAMPLES][SAMPLE_SIZE];
+
+nrf_saadc_value_t raw_samples[NUMBER_OF_CHANNELS];
 nrfx_saadc_channel_t channels[NUMBER_OF_CHANNELS] = 
 {
     NRFX_SAADC_DEFAULT_CHANNEL_SE(NRF_SAADC_INPUT_AIN0, 0)
@@ -32,17 +34,46 @@ void saadc_init(void)
 }
 
 void saadc_measure() {
+    printk("START MEASURING\n");
     nrfx_err_t err_code;
-    int32_t int_part; 
- 
-    err_code = nrfx_saadc_buffer_set(samples, NUMBER_OF_CHANNELS);
-    handle_error(err_code);
 
-    err_code = nrfx_saadc_mode_trigger();
-    handle_error(err_code);
+    saadc_init();
+    
+    for (uint16_t i = 0; i < SAMPLE_SIZE; i++) {
+        err_code = nrfx_saadc_buffer_set(raw_samples, NUMBER_OF_CHANNELS);
+        handle_error(err_code);
 
-    int32_t millivolts = (samples[0] * 1000 * 100 * 3.6) / 4095; // Changed gain in header file!
-    int_part = millivolts / 100; 
-    int32_t frac_part = millivolts % 100;
-    printf("Measured value: %d.%02d mV\n", int_part, frac_part);
+        err_code = nrfx_saadc_mode_trigger();
+        handle_error(err_code);
+
+        communicate_samples[current_sample][i] = (raw_samples[0] * 3.6f * 1000) / 4095; // Changed gain in header file!
+
+        printf("Measured value: %.2f mV\n", communicate_samples[current_sample][i]);     
+    }
+    printf("Current sample: %d\n", current_sample);
+    current_sample += 1;
+
+    // Uninint //
+    nrfx_saadc_uninit();
+    NRF_SAADC->INTENCLR = (SAADC_INTENCLR_END_Clear << SAADC_INTENCLR_END_Pos);
+    NVIC_ClearPendingIRQ(SAADC_IRQn);
+    // ---------------- //
+
+    // SAADC reset - Workaround //
+    volatile uint32_t temp1;
+    volatile uint32_t temp2;
+    volatile uint32_t temp3;
+
+    temp1 = *(volatile uint32_t *)0x40007640ul;
+    temp2 = *(volatile uint32_t *)0x40007644ul;
+    temp3 = *(volatile uint32_t *)0x40007648ul;
+
+    *(volatile uint32_t *)0x40007FFCul = 0ul;
+    *(volatile uint32_t *)0x40007FFCul;
+    *(volatile uint32_t *)0x40007FFCul = 1ul;
+
+    *(volatile uint32_t *)0x40007640ul = temp1;
+    *(volatile uint32_t *)0x40007644ul = temp2;
+    *(volatile uint32_t *)0x40007648ul = temp3;
+    // ---------------- //
 }
