@@ -6,7 +6,6 @@
 void on_connected(struct bt_conn *conn, uint8_t err);
 void on_disconnected(struct bt_conn *conn, uint8_t reason);
 void on_notif_changed(enum bt_saadc_notifications_enabled status);
-void fill_saadc_values(void);
 void communicate_handler(void);
 int advertisment_uninit(void);
 

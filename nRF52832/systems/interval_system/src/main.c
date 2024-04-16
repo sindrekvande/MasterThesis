@@ -47,6 +47,7 @@ int main(void) {
                 k_sleep(K_SECONDS(5));      // Wait for bluetooth connection.
                 communicate_handler();            // Send value if connnected
                 advertisment_uninit();
+                checkpoint_create();
                 next_state = SLEEP;
                 current_state = SLEEP;
                 break;

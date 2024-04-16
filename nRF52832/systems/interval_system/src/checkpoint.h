@@ -17,9 +17,7 @@
 #define PARTITION_DEVICE	FIXED_PARTITION_DEVICE(PARTITION)
 
 #define FLASH_PAGE_SIZE   4096 // Correct
-#define CHECKPOINT_WORDS    19 // Number of registers
-
-#define RAM_AND_FLASH_OFFSET 0x00001000 // Correct
+#define CHECKPOINT_WORDS    19+(NUM_SAMPLES*SAMPLE_SIZE) // Number of registers
 
 #define RAM_START   0x20000000 // Correct
 #define RAM_END     0x20000010
@@ -38,18 +36,13 @@ int checkpoint_create();
  */
 int checkpoint_recover();
 
-/**
- * @brief Test if flash memory is behaving as expected.
- * 
- * @return int 
- */
+/** @brief Test if flash memory is behaving as expected. **/
 void checkpoint_test_flash();
 
 /**
  * @brief Get the program state and store to buffer
  * 
  * @param buf[out]
- * @return int 
  */
 void get_program_state(uint32_t * buf);
 
@@ -57,7 +50,6 @@ void get_program_state(uint32_t * buf);
  * @brief Set the program state from values in buffer
  * 
  * @param buf[in] 
- * @return int 
  */
 void set_program_state(uint32_t * buf);
 

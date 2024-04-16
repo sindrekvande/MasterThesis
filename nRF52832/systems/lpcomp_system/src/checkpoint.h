@@ -18,8 +18,8 @@
 #define PARTITION_OFFSET	FIXED_PARTITION_OFFSET(PARTITION)
 #define PARTITION_DEVICE	FIXED_PARTITION_DEVICE(PARTITION)
 
-#define FLASH_PAGE_SIZE   4096 // Correct
-#define CHECKPOINT_WORDS    19 // Number of registers
+#define FLASH_PAGE_SIZE     4096 // Correct
+#define CHECKPOINT_WORDS    19+(NUM_SAMPLES*SAMPLE_SIZE) // Number of registers
 
 #define RAM_START   0x20000000 // Correct
 #define RAM_END     0x20000010

@@ -45,6 +45,14 @@ void get_program_state(uint32_t * buf) { // Number of stored values needs to mat
     buf[17] = next_state;
     buf[18] = current_sample;
 
+    uint16_t data_index = 19;
+    for (int i = 0; i < NUM_SAMPLES; ++i) {
+        for (int j = 0; j < SAMPLE_SIZE; ++j) {
+            buf[data_index] = communicate_samples[i][j];
+            data_index += 1;
+        }
+    }
+
     __asm__ volatile("MOV %0, R0" : "=r" (buf[0]) : : );
     __asm__ volatile("MOV %0, R1" : "=r" (buf[1]) : : );
     __asm__ volatile("MOV %0, R2" : "=r" (buf[2]) : : );
@@ -63,8 +71,6 @@ void get_program_state(uint32_t * buf) { // Number of stored values needs to mat
     __asm__ volatile("MRS %0, PSP\n": "=r" (buf[14]) : : );
     __asm__ volatile("MOV %0, LR\n": "=r" (buf[15]) : : );
     __asm__ volatile("MOV %0, PC\n": "=r" (buf[16]) : : );
-
-    printk("CS get: %d\n", buf[18]);
 }
 
 void set_program_state(uint32_t * buf) {
@@ -74,6 +80,13 @@ void set_program_state(uint32_t * buf) {
     current_sample = buf[18]; // Could have to set current_sample to 0, if it is stuck over 10
     //next_state = 0;
     //current_sample = 0;
+    uint16_t data_index = 19;
+    for (int i = 0; i < NUM_SAMPLES; ++i) {
+        for (int j = 0; j < SAMPLE_SIZE; ++j) {
+            communicate_samples[i][j] = buf[data_index];
+            data_index += 1;
+        }
+    }
 
     __asm__ volatile("MOV R0, %0" : : "r" (buf[0]) : );
     __asm__ volatile("MOV R1, %0" : : "r" (buf[1]) : );
