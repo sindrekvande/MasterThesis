@@ -48,7 +48,7 @@ class file:
 #        df.to_csv(self.outputFile, mode='a', index=False, header=False, sep="\t")
     
     def read_from_file(self):
-        rowlist = np.arange(start=1, stop=(self.numDays-1)*60*24, step=1)
+        rowlist = np.arange(start=1, stop=(self.numDays-1)*60*24+1, step=1)
         self.brightnessDF= pd.read_csv(self.inputFile, sep='\t', usecols = ['Gg_pyr'],  dtype = np.float32, nrows =(60*24), skiprows=rowlist) # header=0, index_col=False,
         return self.brightnessDF
 
