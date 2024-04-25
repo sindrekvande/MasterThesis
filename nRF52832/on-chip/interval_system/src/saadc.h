@@ -25,7 +25,6 @@ typedef enum {
 extern device_state_t current_state;
 extern device_state_t next_state;
 extern uint16_t communicate_samples[NUM_SAMPLES*SAMPLE_SIZE];
-//extern uint16_t communicate_samples[NUM_SAMPLES][SAMPLE_SIZE];
 extern uint16_t current_sample;
 extern uint16_t checkpoint_pd;
 extern uint16_t recover_pd;

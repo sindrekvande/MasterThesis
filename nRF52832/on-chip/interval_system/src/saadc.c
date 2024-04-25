@@ -1,9 +1,8 @@
 #include "saadc.h"
 
 uint16_t communicate_samples[NUM_SAMPLES*SAMPLE_SIZE];
-//uint16_t communicate_samples[NUM_SAMPLES][SAMPLE_SIZE];
 uint16_t checkpoint_pd = 0;
-uint16_t recover_pd = -1; // The first recover right after nrf is turned on for the first time. It should not be a recover there. Therefore, start at -1.
+uint16_t recover_pd = 0;
 uint16_t measure_pd = 0;
 uint16_t communicate_pd = 0;
 bool notif_flag = 0;
@@ -50,12 +49,9 @@ void saadc_measure() {
         err_code = nrfx_saadc_mode_trigger();
         handle_error(err_code);
 
-        //communicate_samples[current_sample][i] = (raw_samples[0] * 3.6f * 1000) / 4095; // Changed gain in header file!
         communicate_samples[(current_sample*SAMPLE_SIZE)+i] = raw_samples[0];
-        //communicate_samples[current_sample][i] = raw_samples[0];
 
-        //printf("Raw value: %d\n", communicate_samples[current_sample][i]);
-        printf("Raw value: %d\n", communicate_samples[(current_sample*SAMPLE_SIZE)+i]);     
+        //printf("Raw value: %d\n", communicate_samples[(current_sample*SAMPLE_SIZE)+i]);     
     }
     printf("Current sample: %d\n", current_sample);
     current_sample += 1;
