@@ -3,7 +3,9 @@
 
 void lpcomp_event_handler(nrf_lpcomp_event_t event_type) {
     if (NRF_LPCOMP->EVENTS_UP == 1) {
+        printf("WAKE UP\n");
         NRF_LPCOMP->EVENTS_UP = 0;
+        current_state = RECOVER;
     }
     // Clear unused interrupt events in case 
     NRF_LPCOMP->EVENTS_CROSS = 0;
@@ -11,14 +13,14 @@ void lpcomp_event_handler(nrf_lpcomp_event_t event_type) {
     NRF_LPCOMP->EVENTS_READY = 0;
 }
 
-void lpcomp_wakeup_init(void) {   
-    printk("#### LPCOMP WAKE UP INIT ####\n");
+void lpcomp_wakeup_init() {   
+    printf("#### LPCOMP WAKEUP INIT ####\n");
     
     nrfx_err_t err_code;
 
     IRQ_DIRECT_CONNECT(COMP_LPCOMP_IRQn, 4, lpcomp_event_handler, 0);
 
-    nrfx_lpcomp_config_t config = NRFX_LPCOMP_DEFAULT_CONFIG(NRF_LPCOMP_INPUT_1); // Threshold 1.5V
+    nrfx_lpcomp_config_t config = NRFX_LPCOMP_DEFAULT_CONFIG(NRF_LPCOMP_INPUT_1);
     config.config.detection = NRF_LPCOMP_DETECT_UP;
 
     err_code = nrfx_lpcomp_init(&config, NULL);
