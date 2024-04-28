@@ -20,7 +20,6 @@ typedef enum {
     COMMUNICATE,
     RECOVER,
     SLEEP,
-    //DEEP_SLEEP,
 } device_state_t;
 
 extern device_state_t current_state;

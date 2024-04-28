@@ -9,7 +9,7 @@
 #include <zephyr/device.h>
 
 extern const struct device *dev;
-extern bool lpcomp_event;
+extern int start_flag;
 
 void lpcomp_event_handler(nrf_lpcomp_event_t event);
 

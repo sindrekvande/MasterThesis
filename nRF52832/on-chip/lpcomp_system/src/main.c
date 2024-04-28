@@ -63,14 +63,10 @@ int main(void) {
                 if (current_sample == NUM_SAMPLES){
                     current_sample = 0;
                     next_state = COMMUNICATE;
-                    if (!lpcomp_event){
-                        current_state = next_state;
-                    }
+                    current_state = next_state;
                 } else {
                     next_state = SLEEP;
-                    if (!lpcomp_event){
-                        current_state = next_state;
-                    }
+                    current_state = next_state;
                 }
                 break;
             
@@ -82,18 +78,20 @@ int main(void) {
                 communicate_handler();
                 advertisment_uninit();
                 next_state = SLEEP;
-                if (!lpcomp_event){
-                    current_state = next_state;
-                }
+                current_state = next_state;
                 break;
 
             case RECOVER:
                 if (!check_first_boot()) {
                     checkpoint_recover();
+                } else {
+                    lpcomp_start_init();
+                    while(!start_flag){
+                        k_sleep(K_MSEC(1));
+                    }
+                    nrfx_lpcomp_uninit();
                 }
-                if (!lpcomp_event){
-                    current_state = next_state;
-                }
+                current_state = next_state;
                 break;
 
             case SLEEP:
@@ -111,18 +109,8 @@ int main(void) {
                 }
 
                 next_state = MEASURE;
-                if (!lpcomp_event){
-                    current_state = next_state;
-                }
+                current_state = next_state;
                 break;
-
-            //case DEEP_SLEEP:
-            //    printk("DEEP SLEEP\n");
-            //    nrfx_lpcomp_uninit();
-            //    lpcomp_wakeup_init();
-            //    checkpoint_create();
-            //    sys_poweroff();
-            //break;
         }
     }
     return 0;

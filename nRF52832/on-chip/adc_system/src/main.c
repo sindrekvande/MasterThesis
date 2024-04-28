@@ -92,6 +92,12 @@ int main(void) {
             case RECOVER:
                 if (!check_first_boot()) {
                     checkpoint_recover();
+                } else {
+                    lpcomp_start_init();
+                    while(!start_flag){
+                        k_sleep(K_MSEC(1));
+                    }
+                    nrfx_lpcomp_uninit();
                 }
                 current_state = next_state;
                 break;
