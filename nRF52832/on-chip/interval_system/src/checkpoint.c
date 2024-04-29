@@ -3,30 +3,6 @@
 
 const struct device *flash_dev = PARTITION_DEVICE;
 uint32_t checkpoint_data[CHECKPOINT_WORDS] = {0};
-
-bool check_first_boot() {
-    uint32_t first_boot_flag_value = 0xA5A5A5A5;
-    uint32_t first_boot_flag;
-    if (flash_read(flash_dev, FIRST_BOOT_FLAG_ADDR, &first_boot_flag, sizeof(first_boot_flag)) != 0) {
-        printk("Flash read failed at first boot check.\n");
-        return false;
-    }
-    if (first_boot_flag != FIRST_BOOT_FLAG_VALUE) {
-        if (flash_erase(flash_dev, FIRST_BOOT_FLAG_ADDR, FLASH_PAGE_SIZE) != 0) {
-            printk("Flash erase failed during first boot flag set.\n");
-            return false;
-        }
-        if (flash_write(flash_dev, FIRST_BOOT_FLAG_ADDR, &first_boot_flag_value, sizeof(FIRST_BOOT_FLAG_VALUE)) != 0) {
-            printk("Flash write failed during first boot flag set.\n");
-            return false;
-        }
-        printk("First boot detected and flag set.\n");
-        return true;
-    }
-    printk("Not the first boot.\n");
-    return false;
-}
-
 int checkpoint_create() {
     printk("#### CREATING CHECKPOINT ###\n");
     get_program_state(checkpoint_data);
@@ -44,7 +20,6 @@ int checkpoint_create() {
 		}
     }
     //return save_ram_to_flash(); // FULL SOLUTION
-    checkpoint_pd += 1; // SIMPLIFIED SOLUTION
     return 0; // SIMPLIFIED SOLUTION
 }
 
@@ -67,16 +42,9 @@ void get_program_state(uint32_t * buf) { // Number of stored values needs to mat
     printk("#### GET PROGRAM STATE ####\n");
 
     buf[0] = next_state; 
-    buf[1] = current_sample; 
+    buf[1] = current_sample;
 
-    // --- PERFORMANCE DATA - SHOULD BE EXCLUDED FROM RESULTS --- //
-    buf[2] = checkpoint_pd;
-    buf[3] = recover_pd;
-    buf[4] = communicate_pd;
-    buf[5] = measure_pd;
-    // ---------------------------------------------------------- //
-
-    uint16_t data_index = 6; 
+    uint16_t data_index = 2;
     for (int i = 0; i < NUM_SAMPLES*SAMPLE_SIZE; ++i) {
         buf[data_index] = communicate_samples[i];
         data_index += 1;
@@ -106,25 +74,16 @@ void get_program_state(uint32_t * buf) { // Number of stored values needs to mat
 void set_program_state(uint32_t * buf) {
     printk("#### SET PROGRAM STATE ####\n");
 
-    next_state = buf[0];
+    next_state = buf[0]; 
     current_sample = buf[1];
     //next_state = 0;
     //current_sample = 0;
 
-    // --- PERFORMANCE DATA - SHOULD BE EXCLUDED FROM RESULTS --- //
-    checkpoint_pd = buf[2];
-    recover_pd = buf[3];
-    communicate_pd = buf[4];
-    measure_pd = buf[5];
-    // ---------------------------------------------------------- //
-
-    uint16_t data_index = 6;
+    uint16_t data_index = 2; 
     for (int i = 0; i < NUM_SAMPLES*SAMPLE_SIZE; ++i) {
         communicate_samples[i] = buf[data_index];
         data_index += 1;
     }
-
-    recover_pd += 1; // SIMPLIFIED SOLUTION
 
     // FULL SOLUTION //
     //__asm__ volatile("MOV R0, %0" : : "r" (buf[0]) : );
@@ -164,7 +123,6 @@ int save_ram_to_flash() {
         }
         offset += sizeof(uint32_t);
     }
-    checkpoint_pd += 1;
     return 0;
 }
 
@@ -182,6 +140,5 @@ int retrieve_ram_from_flash() {
         *ram_ptr = data;
         offset += sizeof(uint32_t);
     }
-    recover_pd += 1;
     return 0;
 }

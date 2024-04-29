@@ -3,8 +3,6 @@
 #include "checkpoint.h"
 #include <zephyr/sys/poweroff.h>
 
-int start_flag = 0;
-
 void lpcomp_event_handler(nrf_lpcomp_event_t event_type) {
     pm_device_action_run(dev, PM_DEVICE_ACTION_RESUME);
     if (NRF_LPCOMP->EVENTS_DOWN == 1) {
@@ -14,13 +12,10 @@ void lpcomp_event_handler(nrf_lpcomp_event_t event_type) {
         checkpoint_create();
         sys_poweroff();
         NRF_LPCOMP->EVENTS_DOWN = 0;
-    } else if (NRF_LPCOMP->EVENTS_UP == 1){
-        NRF_LPCOMP->EVENTS_UP = 0;
-        start_flag = 1;
     }
-
     // Clear unused interrupt events in case
     NRF_LPCOMP->EVENTS_CROSS = 0;
+    NRF_LPCOMP->EVENTS_UP = 0;
     NRF_LPCOMP->EVENTS_READY = 0;
 }
 
@@ -54,24 +49,6 @@ void lpcomp_idle_init(void) {
 
     err_code = nrfx_lpcomp_init(&config, NULL);
     handle_error(err_code);
-
-    nrfx_lpcomp_enable();
-}
-
-void lpcomp_start_init(void) {   
-    printk("#### LPCOMP START INIT ####\n");
-    
-    nrfx_err_t err_code;
-
-    IRQ_DIRECT_CONNECT(COMP_LPCOMP_IRQn, 4, lpcomp_event_handler, 0);
-
-    nrfx_lpcomp_config_t config = NRFX_LPCOMP_DEFAULT_CONFIG(NRF_LPCOMP_INPUT_2); // Threshold 1.5V - AIN2 should be UART_RXD
-    config.config.detection = NRF_LPCOMP_DETECT_UP;
-
-    err_code = nrfx_lpcomp_init(&config, NULL);
-    if (err_code != NRFX_SUCCESS){
-        printf("Error (0x%X)\n", err_code); 
-    }
 
     nrfx_lpcomp_enable();
 }

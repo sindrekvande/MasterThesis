@@ -43,17 +43,11 @@ void on_notif_changed(enum bt_saadc_notifications_enabled status) {
 
 void communicate_handler(void) {
     int err;
-    communicate_pd += 1;
 
     if (!current_conn) {
         printf("No active connection to send notification.\n");
         return;
     }
-    communicate_samples[0] = 0xFFFF;
-    communicate_samples[1] = checkpoint_pd;
-    communicate_samples[2] = recover_pd;
-    communicate_samples[3] = measure_pd;
-    communicate_samples[4] = communicate_pd;
 
     uint8_t data_to_send[10*sizeof(uint16_t)]; // changes to uint8_t to receive data in right order
 

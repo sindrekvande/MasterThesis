@@ -17,10 +17,15 @@
 #define PARTITION_DEVICE	FIXED_PARTITION_DEVICE(PARTITION)
 
 #define FLASH_PAGE_SIZE     4096 
-#define CHECKPOINT_WORDS    3+(NUM_SAMPLES*SAMPLE_SIZE) // Number of registers (FULL SOLUTION: 19)
+#define CHECKPOINT_WORDS    7+(NUM_SAMPLES*SAMPLE_SIZE) // Number of registers (FULL SOLUTION: 19)
 
 #define RAM_START   0x20000000 
 #define RAM_END     0x20000010
+
+#define FIRST_BOOT_FLAG_ADDR 0x42000
+#define FIRST_BOOT_FLAG_VALUE 0xA5A5A5A5
+
+bool check_first_boot();
 
 /**
  * @brief Creates checkpoint for current tasks.

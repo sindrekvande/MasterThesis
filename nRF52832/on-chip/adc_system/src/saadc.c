@@ -1,11 +1,8 @@
 #include "saadc.h"
 
 uint16_t communicate_samples[NUM_SAMPLES*SAMPLE_SIZE];
-uint16_t checkpoint_pd = 0;
-uint16_t recover_pd = 0;
-uint16_t measure_pd = 0;
-uint16_t communicate_pd = 0;
 bool notif_flag = 0;
+
 
 nrf_saadc_value_t raw_samples[NUMBER_OF_CHANNELS];
 nrfx_saadc_channel_t channels[NUMBER_OF_CHANNELS] = {
@@ -51,11 +48,10 @@ void saadc_measure() {
 
         communicate_samples[(current_sample*SAMPLE_SIZE)+i] = raw_samples[0];
 
-        //printf("Raw value: %d\n", communicate_samples[(current_sample*SAMPLE_SIZE)+i]);     
+        //printf("Measured value: %.2f mV\n", communicate_samples[current_sample][i]);     
     }
     printf("Current sample: %d\n", current_sample);
     current_sample += 1;
-    measure_pd += 1;
 
     // Uninint //
     nrfx_saadc_uninit();

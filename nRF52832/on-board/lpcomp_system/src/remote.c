@@ -5,7 +5,6 @@ static K_SEM_DEFINE(bt_init_ok, 0, 1);
 #define DEVICE_NAME CONFIG_BT_DEVICE_NAME
 #define DEVICE_NAME_LEN (sizeof(DEVICE_NAME)-1)
 
-static uint16_t saadc_value = 0;
 static struct bt_remote_service_cb remote_service_callbacks;
 enum bt_saadc_notifications_enabled notifications_enabled;
 
@@ -19,15 +18,14 @@ static const struct bt_data sd[] = {
 };
 
 /* Declarations */
-static ssize_t read_saadc_characteristic_cb(struct bt_conn *conn, const struct bt_gatt_attr *attr, void *buf, uint16_t len, uint16_t offset);
 void saadc_chrc_ccc_cfg_changed(const struct bt_gatt_attr *attr, uint16_t value);
 
 BT_GATT_SERVICE_DEFINE(remote_srv,
 BT_GATT_PRIMARY_SERVICE(BT_UUID_REMOTE_SERVICE),
     BT_GATT_CHARACTERISTIC(BT_UUID_REMOTE_SAADC_CHRC,
-                           BT_GATT_CHRC_READ | BT_GATT_CHRC_NOTIFY,
+                           BT_GATT_CHRC_NOTIFY, //BT_GATT_CHRC_READ | BT_GATT_CHRC_NOTIFY,
                            BT_GATT_PERM_READ,
-                           read_saadc_characteristic_cb, NULL, NULL),
+                           NULL, NULL, NULL),//read_saadc_characteristic_cb, NULL, NULL),
     BT_GATT_CCC(saadc_chrc_ccc_cfg_changed, BT_GATT_PERM_READ | BT_GATT_PERM_WRITE),
 );
 
@@ -42,10 +40,6 @@ void saadc_chrc_ccc_cfg_changed(const struct bt_gatt_attr *attr, uint16_t value)
     if (remote_service_callbacks.notif_changed) {
         remote_service_callbacks.notif_changed(notifications_enabled);
     }
-}
-
-static ssize_t read_saadc_characteristic_cb(struct bt_conn *conn, const struct bt_gatt_attr *attr, void *buf, uint16_t len, uint16_t offset) {
-    return bt_gatt_attr_read(conn, attr, buf, len, offset, &saadc_value, sizeof(saadc_value));
 }
 
 void bt_ready(int err) {
@@ -67,10 +61,6 @@ int send_saadc_notification(struct bt_conn *conn, uint8_t *values, uint16_t leng
     const struct bt_gatt_attr *attr = &remote_srv.attrs[2];
     err = bt_gatt_notify(conn, attr, values, length);
     return err;
-}
-
-void set_saadc_value(uint16_t *values) {
-    saadc_value = *values;
 }
 
 int bluetooth_init(struct bt_conn_cb *bt_cb, struct bt_remote_service_cb *remote_cb) {
