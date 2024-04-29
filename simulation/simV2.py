@@ -19,7 +19,7 @@ class energyStorage:
         self.scale = scale
 
     def addEnergy(self, irr):
-        self.energy += irr / 1000 * 0.93 * self.scale
+        self.energy += irr / 10000 * 0.93 * self.scale
         if self.energy > self.maxEnergy:
             self.energy = self.maxEnergy
         self.voltage = np.sqrt(2*self.energy/self.capacitance)
@@ -46,7 +46,7 @@ def singleSim(
     thresholdStop   = 2.2,
     thresholdDead   = 1.7,
     season          = 'winter',
-    scale           = 4/1000):
+    scale           = 3/1000):
 
     btSize = sampleNum*sampleSize
     
@@ -92,7 +92,7 @@ def singleSim(
         timesCheckpointed = 0
         checkpointEnergy = 0
         checkpointCheckEnergy = 0
-        timesRecovered = 0
+        timesRecovered = -1
         recoverEnergy = 0
         sleepCount = sleepTime
         sleepEnergy = 0
@@ -112,11 +112,6 @@ def singleSim(
                         checkpointCheckEnergy += energies['svspower']
                     if not deepSleep:
                         if not sleep:
-                            measureCount -= 1
-                            energyUse += energies['measure'] + energies['sleep']* (1 - measureTime)
-                            measureEnergy += energies['measure']
-                            sleepEnergy += energies['sleep']* (1 - measureTime)
-                            timesMeasured +=1
                             if measureCount <= 0:
                                 measureEnergyUsed += measureEnergy
                                 measureEnergy = 0
@@ -125,6 +120,26 @@ def singleSim(
                                 sleepEnergy -= energies['sleep'] * comunicateTime
                                 measureCount = sampleNum
                                 timesCommunicated += 1
+                                if s == interval:
+                                    energyUse += energies['checkpoint'] - energies['sleep'] * timeToSave
+                                    timesCheckpointed += 1
+                                    checkpointEnergy += energies['checkpoint']
+                                    sleepEnergy -= energies['sleep'] * (timeToSave)
+                                elif s == adc:
+                                    energyUse += energies['measure'] / sampleSize
+                                    checkpointCheckEnergy += energies['measure'] / sampleSize
+                                    if (capacitor.voltage < thresholdStop):
+                                        energyUse += energies['checkpoint'] - energies['sleep'] * (timeToSave)
+                                        checkpointEnergy += energies['checkpoint']
+                                        sleepEnergy -= energies['sleep'] * (timeToSave)
+                                        timesCheckpointed += 1
+                                        deepSleep = True
+                            measureCount -= 1
+                            energyUse += energies['measure'] + energies['sleep']* (1 - measureTime)
+                            measureEnergy += energies['measure']
+                            sleepEnergy += energies['sleep']* (1 - measureTime)
+                            timesMeasured +=1
+                            
                             if s == interval:
                                 energyUse += energies['checkpoint'] - energies['sleep'] * timeToSave
                                 timesCheckpointed += 1
@@ -236,7 +251,7 @@ def plotGraphs(barLoc, energyLoc, timeLoc, timeResults, barResults, energyBar, m
         ax[i].set(ylabel='Voltage [V]', xticks=timeAxisTicks)
         ax[i].legend(loc="upper right")
         ax[i].margins(x=0)
-        ax[i].axhline(3.3, color='grey', ls='--')
+        ax[i].axhline(2.95, color='grey', ls='--')
         ax[i].axhline(params['start'], color='green', ls='--')
         if i != 0:
             ax[i].axhline(params['stop'], color='orange', ls='--')
@@ -254,7 +269,7 @@ def plotGraphs(barLoc, energyLoc, timeLoc, timeResults, barResults, energyBar, m
 def multiSim():
     headers = ['Season', 'Day', 'Capacitance [mF]', 'SampleNum', 'SampleSize', 'Sleep', 'Start', 'Stop', '', 'Resulting metrics', 'Energy Use', 'Time plot']
     metrics = ['Checkpointed', 'Recovered', 'Measured', 'Communicated']
-    simSetFile = 'simSet5'
+    simSetFile = 'simSet6'
     #os.rmdir('simulation/results/'+simSetFile+'Results')
     os.makedirs('simulation/results/'+simSetFile+'Results')
     resultLoc = 'simulation/results/'+simSetFile+'Results/'+simSetFile+'.xlsx'
