@@ -17,4 +17,6 @@ void lpcomp_wakeup_init(void);
 
 void lpcomp_idle_init(void);
 
+void lpcomp_start_init(void);
+
 #endif

@@ -10,8 +10,6 @@
 
 #define NUMBER_OF_CHANNELS 1
 
-#define SLEEP_THRESHOLD 1000 // mV
-#define WAKE_UP_THRESHOLD 1500 // mV
 #define NUM_SAMPLES 10
 #define SAMPLE_SIZE 10
 
@@ -20,7 +18,6 @@ typedef enum {
     COMMUNICATE,
     RECOVER,
     SLEEP,
-    //DEEP_SLEEP,
 } device_state_t;
 
 extern device_state_t current_state;
@@ -28,7 +25,6 @@ extern device_state_t next_state;
 extern uint16_t communicate_samples[NUM_SAMPLES*SAMPLE_SIZE];
 extern uint16_t current_sample;
 extern bool notif_flag;
-
 
 void handle_error(nrfx_err_t error_code);
 

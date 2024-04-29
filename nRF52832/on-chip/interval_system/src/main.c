@@ -101,7 +101,6 @@ int main(void) {
 
             case SLEEP:
                 printk("SLEEP\n");
-                printk("Performance data: %d, %d, %d, %d\n", checkpoint_pd, recover_pd, communicate_pd, measure_pd);
                 err = pm_device_action_run(dev, PM_DEVICE_ACTION_SUSPEND);
                 if (err) {
                     printk("pm_device_action_run() failed (%d)\n", err);

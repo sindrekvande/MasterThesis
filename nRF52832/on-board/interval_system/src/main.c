@@ -25,8 +25,6 @@ int main(void) {
         printf("Couldn't initialize Bluetooth. err: %d\n", err);
     }
 
-    //lpcomp_wakeup_init();
-
     while(1) {
         switch (current_state) {
             case MEASURE:

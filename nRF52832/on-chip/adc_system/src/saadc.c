@@ -117,20 +117,19 @@ void saadc_storage_check() {
     *(volatile uint32_t *)0x40007648ul = temp3;
     // ---------------- //
 
-    float storage_current = (raw_samples[1] * 3.6f * 1000) / 4095; // Changed gain in header file!
-    printf("Stored current: %.2f mV - STATE: %d\n", storage_current, current_state);
+    printf("Stored current: %d - STATE: %d\n", raw_samples[1], current_state);
 
-    if (storage_current < SLEEP_THRESHOLD) {
+    if (raw_samples[1] < DEEP_SLEEP_THRESHOLD) {
         printf("Current too low, checkpoint.\n");
         current_state = DEEP_SLEEP;
-    } else if (current_state == MEASURE && storage_current >= SLEEP_THRESHOLD && current_sample == NUM_SAMPLES) {
+    } else if (current_state == MEASURE && raw_samples[1] >= DEEP_SLEEP_THRESHOLD && current_sample == NUM_SAMPLES) {
         printf("Measure completed, COMMUNICATE.\n");
         current_sample = 0;
         current_state = COMMUNICATE;
-    } else if (current_state == MEASURE && storage_current >= SLEEP_THRESHOLD && current_sample != NUM_SAMPLES) {
+    } else if (current_state == MEASURE && raw_samples[1] >= DEEP_SLEEP_THRESHOLD && current_sample != NUM_SAMPLES) {
         printf("Measure completed, SLEEP.\n");
         current_state = SLEEP;
-    }else if (current_state == COMMUNICATE && storage_current >= SLEEP_THRESHOLD) {
+    }else if (current_state == COMMUNICATE && raw_samples[1] >= DEEP_SLEEP_THRESHOLD) {
         printf("Communicate completed, SLEEP.\n");
         current_state = SLEEP;
     }
