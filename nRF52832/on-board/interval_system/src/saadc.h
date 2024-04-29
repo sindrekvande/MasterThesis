@@ -10,10 +10,8 @@
 
 #define NUMBER_OF_CHANNELS 1
 
-#define SLEEP_THRESHOLD 1000 // mV
-#define WAKE_UP_THRESHOLD 1500 // mV
-#define NUM_SAMPLES 10
-#define SAMPLE_SIZE 10
+#define NUM_SAMPLES 30
+#define SAMPLE_SIZE 30
 
 typedef enum {
     MEASURE,

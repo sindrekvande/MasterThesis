@@ -10,7 +10,6 @@ const struct device *dev = DEVICE_DT_GET(DT_CHOSEN(zephyr_console));
 device_state_t current_state = RECOVER;
 device_state_t next_state = MEASURE;
 uint16_t current_sample = 0;
-bool lpcomp_event = 0;
 
 void print_device_address(){
     uint8_t * device_address = (uint8_t *)NRF_FICR->DEVICEADDR;
@@ -44,7 +43,7 @@ int main(void) {
         switch (current_state) {
             case MEASURE:
                 saadc_measure();
-                if (current_sample == 10){
+                if (current_sample == NUM_SAMPLES){
                     current_sample = 0;
                     next_state = COMMUNICATE;
                     current_state = next_state;

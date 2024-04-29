@@ -10,10 +10,9 @@
 
 #define NUMBER_OF_CHANNELS 2
 
-#define DEEP_SLEEP_THRESHOLD 2275 // Raw value (2V)
-#define WAKE_UP_THRESHOLD 3185 // Raw value (2.8V)
-#define NUM_SAMPLES 10
-#define SAMPLE_SIZE 10
+#define DEEP_SLEEP_THRESHOLD 2048 // Raw value (1.8V)
+#define NUM_SAMPLES 30
+#define SAMPLE_SIZE 30
 
 typedef enum {
     MEASURE,

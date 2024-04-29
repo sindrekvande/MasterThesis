@@ -12,7 +12,6 @@ const struct device *dev = DEVICE_DT_GET(DT_CHOSEN(zephyr_console));
 device_state_t current_state = RECOVER;
 device_state_t next_state = MEASURE;
 uint16_t current_sample = 0;
-bool lpcomp_event = 0;
 
 // ----- MAC ADDRESS PRINT ----- //
 //void print_device_address(){

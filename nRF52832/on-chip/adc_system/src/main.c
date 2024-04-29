@@ -30,7 +30,7 @@ int main(void) {
         switch (current_state) {
             case MEASURE:
                 saadc_measure();
-                if (current_sample == 10){
+                if (current_sample == NUM_SAMPLES){
                     next_state = COMMUNICATE;
                 } else {
                     next_state = SLEEP;
@@ -74,7 +74,8 @@ int main(void) {
                     printk("pm_device_action_run() failed (%d)\n", err);
                 }
 
-                current_state = MEASURE;
+                next_state = MEASURE;
+                current_state = next_state;
                 break;
         }
     }

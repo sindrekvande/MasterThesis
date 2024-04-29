@@ -115,7 +115,8 @@ int main(void) {
                     printk("pm_device_action_run() failed (%d)\n", err);
                 }
 
-                current_state = MEASURE;
+                next_state = MEASURE;
+                current_state = next_state;
                 break;
         }
     }
