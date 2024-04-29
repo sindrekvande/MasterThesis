@@ -25,6 +25,8 @@
 #define FIRST_BOOT_FLAG_ADDR 0x42000
 #define FIRST_BOOT_FLAG_VALUE 0xA5A5A5A5
 
+bool check_first_boot();
+
 /**
  * @brief Creates checkpoint for current tasks.
  * 

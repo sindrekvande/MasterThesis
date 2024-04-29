@@ -10,8 +10,8 @@
 
 #define NUMBER_OF_CHANNELS 2
 
-#define SLEEP_THRESHOLD 1000 // mV
-#define WAKE_UP_THRESHOLD 1500 // mV
+#define DEEP_SLEEP_THRESHOLD 2275 // Raw value (2V)
+#define WAKE_UP_THRESHOLD 3185 // Raw value (2.8V)
 #define NUM_SAMPLES 10
 #define SAMPLE_SIZE 10
 

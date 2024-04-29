@@ -54,7 +54,6 @@ int main(void) {
     }
 
     nrfx_lpcomp_uninit();
-    lpcomp_idle_init();
 
     while(1) {
         switch (current_state) {
@@ -91,6 +90,7 @@ int main(void) {
                     }
                     nrfx_lpcomp_uninit();
                 }
+                lpcomp_idle_init();
                 current_state = next_state;
                 break;
 

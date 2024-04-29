@@ -74,10 +74,10 @@ void get_program_state(uint32_t * buf) { // Number of stored values needs to mat
 void set_program_state(uint32_t * buf) {
     printk("#### SET PROGRAM STATE ####\n");
 
-    next_state = buf[0];
-    current_sample = buf[1];
-    //next_state = 0;
-    //current_sample = 0;
+    //next_state = buf[0];
+    //current_sample = buf[1];
+    next_state = 0;
+    current_sample = 0;
 
     uint16_t data_index = 2;
     for (int i = 0; i < NUM_SAMPLES*SAMPLE_SIZE; ++i) {

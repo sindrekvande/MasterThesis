@@ -1,5 +1,6 @@
 #include "checkpoint.h"
 #include "saadc.h"
+#include "nrfx_nvmc.h"
 
 const struct device *flash_dev = PARTITION_DEVICE;
 uint32_t checkpoint_data[CHECKPOINT_WORDS] = {0};
@@ -27,21 +28,24 @@ bool check_first_boot() {
     return false;
 }
 
+uint32_t read_from_flash(uint32_t address) {
+    const uint32_t* flash_addr = (const uint32_t*)address;
+    return *flash_addr;
+}
+
 int checkpoint_create() {
     printk("#### CREATING CHECKPOINT ###\n");
     get_program_state(checkpoint_data);
 
     uint32_t offset = PARTITION_OFFSET;
-    if (flash_erase(flash_dev, offset, FLASH_PAGE_SIZE) != 0) {
+    if (nrfx_nvmc_page_erase(offset) != NRFX_SUCCESS) {
         printk("Flash erase failed at offset 0x%X\n", offset);
         return -1;
     }
 
     for (uint32_t i = 0; i < CHECKPOINT_WORDS; i++) {
-		if (flash_write(flash_dev, offset + (i * sizeof(uint32_t)), &checkpoint_data[i], sizeof(checkpoint_data[i])) != 0) {
-			printk("Flash write failed at offset 0x%08X\n", offset + (i * sizeof(uint32_t)));
-			return -1;
-		}
+        uint32_t write_address = offset + (i * sizeof(uint32_t));
+        nrfx_nvmc_bytes_write(write_address, &checkpoint_data[i], 4);
     }
     //return save_ram_to_flash(); // FULL SOLUTION
     checkpoint_pd += 1; // SIMPLIFIED SOLUTION
@@ -53,10 +57,7 @@ int checkpoint_recover() {
     uint32_t offset = PARTITION_OFFSET;
 
     for (uint32_t i = 0; i < CHECKPOINT_WORDS; i++) {
-		if (flash_read(flash_dev, offset + (i * sizeof(uint32_t)), &checkpoint_data[i], sizeof(checkpoint_data[i])) != 0) {
-			printk("Flash read failed at offset 0x%08X\n", offset + (i * sizeof(uint32_t)));
-			return -1;
-		}
+        checkpoint_data[i] = read_from_flash(offset + (i * sizeof(uint32_t)));
     }
     set_program_state(checkpoint_data);
     //return retrieve_ram_from_flash(); // FULL SOLUTION
@@ -153,15 +154,12 @@ int save_ram_to_flash() {
 
     for (uint32_t *ram_ptr = (uint32_t *)RAM_START; ram_ptr < (uint32_t *)RAM_END; ram_ptr++) {
         if (offset % FLASH_PAGE_SIZE == 0) {
-            if (flash_erase(flash_dev, offset, FLASH_PAGE_SIZE) != 0) {
+            if (nrfx_nvmc_page_erase(offset) != NRFX_SUCCESS) {
                 printk("Flash erase failed at offset 0x%08X\n", offset);
                 return -1;
             }
         }
-        if (flash_write(flash_dev, offset, ram_ptr, sizeof(uint32_t)) != 0) { 
-            printk("Flash write failed at offset 0x%08X\n", offset);
-            return -1;
-        }
+        nrfx_nvmc_bytes_write(offset, &ram_ptr, 4);
         offset += sizeof(uint32_t);
     }
     checkpoint_pd += 1;
@@ -172,13 +170,10 @@ int retrieve_ram_from_flash() {
     printk("#### RETRIVE RAM FROM FLASH ####\n");
     uint32_t offset = PARTITION_OFFSET + (CHECKPOINT_WORDS * sizeof(uint32_t)); 
 
+    
     for (uint32_t *ram_ptr = (uint32_t *)RAM_START; ram_ptr < (uint32_t *)RAM_END; ram_ptr++) {
         uint32_t data;
-
-        if (flash_read(flash_dev, offset, &data, sizeof(uint32_t)) != 0) {
-            printk("Flash read failed at offset 0x%08X\n", offset);
-            return -1;
-        }
+        data = read_from_flash(offset);
         *ram_ptr = data;
         offset += sizeof(uint32_t);
     }
