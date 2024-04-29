@@ -49,6 +49,7 @@ void communicate_handler(void) {
         printf("No active connection to send notification.\n");
         return;
     }
+    uint8_t * device_address = (uint8_t *)NRF_FICR->DEVICEADDR;
     communicate_samples[0] = 0xFFFF;
     communicate_samples[1] = checkpoint_pd;
     communicate_samples[2] = recover_pd;

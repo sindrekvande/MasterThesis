@@ -1,6 +1,6 @@
 import pandas as pd
 
-fileName = "simulation\simSet4.tsv"
+fileName = "simulation\simSet5.tsv"
 
 header = ['season', 'day', 'capacitance', 'sampleNum', 'sampleSize', 'sleep', 'start', 'stop']
 
@@ -15,12 +15,12 @@ columns = {header[0] : [],
 }
 
 for season in ['summer']:
-    for day in ([11, 20, 3] if season == 'winter' else [7, 2]): #[7, 10, 2]
-        for capacitance in [476, 352, 205]:
-            for sampleNum in [20, 30]:
-                for sampleSize in [20, 30]:
-                    for sleep in [5, 10]:
-                        for start in [3.0, 2.7, 2.3]:
+    for day in ([11, 20, 3] if season == 'winter' else [2]): #[7, 10, 2]
+        for capacitance in [385]:
+            for sampleNum in [10]:
+                for sampleSize in [10]:
+                    for sleep in [3]:
+                        for start in [2.7, 2.5, 2.3]:
                             for stop in [2.2, 2.0, 1.8]:
                                 columns[header[0]] += [season]
                                 columns[header[1]] += [day]

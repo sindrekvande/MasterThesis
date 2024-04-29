@@ -12,14 +12,14 @@ class energyStorage:
     # E = (Q * V) / 2 = C*V**2 / 2
     # V = sqrt(2*E/C)
     def __init__(self, capacitance, scale):
-        self.maxEnergy = 1/2 * capacitance * 3.3**2
+        self.maxEnergy = 1/2 * capacitance * 2.95**2
         self.voltage = 0
         self.energy = 0
         self.capacitance = capacitance
         self.scale = scale
 
     def addEnergy(self, irr):
-        self.energy += irr / 10000 * 0.93 * self.scale
+        self.energy += irr / 1000 * 0.93 * self.scale
         if self.energy > self.maxEnergy:
             self.energy = self.maxEnergy
         self.voltage = np.sqrt(2*self.energy/self.capacitance)
@@ -40,13 +40,13 @@ def singleSim(
     sleepTime       = 10,       # in seconds
     day             = 11,       # which day of the month
     capacitorSize   = 476,      # in milliFarad
-    timeToSave      = 1.152,      # should reflect 64kB RAM to flash write at 64MHz
-    timeToRecover   = 0.035,
+    timeToSave      = 0.0617,    # should reflect 64kB RAM to flash write at 64MHz
+    timeToRecover   = 0.00271,
     thresholdStart  = 3.2,      # nRF: 1.7 V–3.6 V supply voltage range
     thresholdStop   = 2.2,
     thresholdDead   = 1.7,
     season          = 'winter',
-    scale           = 3/1000):
+    scale           = 4/1000):
 
     btSize = sampleNum*sampleSize
     
@@ -56,10 +56,10 @@ def singleSim(
     communicatePower    = 1.7 * 10 ** -3 * 3
     sleepPower          = 2.4 * 10 ** -6 * 3
     deepSleepPower      = 0.7 * 10 ** -6 * 3
-    checkpointPower     = 3.5 * 10 ** -3 * 3
-    recoverPower        = 3.7 * 10 ** -3 * 3
+    checkpointPower     = 3.0 * 10 ** -3 * 3
+    recoverPower        = 3.5 * 10 ** -3 * 3
     measureTime         = sampleSize/200
-    comunicateTime      = btSize*0.053
+    comunicateTime      = (btSize//10 + (1 if btSize%10 else 0)) *0.009
 
     interval = 'Interval'
     adc = 'ADC'
@@ -73,8 +73,8 @@ def singleSim(
     timeResults = [[], [], [], []]
     barResults = []
     energyBar = []
-    energies = {'checkpoint'    : (timeToSave + 0.0059) * checkpointPower,
-                'recover'       : (timeToRecover + 0.0026) * recoverPower,
+    energies = {'checkpoint'    : (timeToSave*sampleNum*sampleSize/100) * checkpointPower,
+                'recover'       : (timeToRecover*sampleNum*sampleSize/100) * recoverPower,
                 'measure'       : measurePower*measureTime,
                 'communicate'   : communicatePower*comunicateTime,
                 'sleep'         : sleepPower,
@@ -254,7 +254,7 @@ def plotGraphs(barLoc, energyLoc, timeLoc, timeResults, barResults, energyBar, m
 def multiSim():
     headers = ['Season', 'Day', 'Capacitance [mF]', 'SampleNum', 'SampleSize', 'Sleep', 'Start', 'Stop', '', 'Resulting metrics', 'Energy Use', 'Time plot']
     metrics = ['Checkpointed', 'Recovered', 'Measured', 'Communicated']
-    simSetFile = 'simSet4'
+    simSetFile = 'simSet5'
     #os.rmdir('simulation/results/'+simSetFile+'Results')
     os.makedirs('simulation/results/'+simSetFile+'Results')
     resultLoc = 'simulation/results/'+simSetFile+'Results/'+simSetFile+'.xlsx'
