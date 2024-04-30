@@ -4,9 +4,9 @@ import numpy as np
 
 resultFile = 'emulationResults/firstTest.tsv'
 
-VoltageDF = pd.read_csv(resultFile, sep='\t', usecols = ['CSA_STORAGE_IN_+'],  dtype = np.float32)
+VoltageDF = pd.read_csv(resultFile, sep='\t', usecols = ['EH_IN_+_BUF'],  dtype = np.float32)
 irrDF = pd.read_csv(resultFile, sep='\t', usecols = ['irrValue'],  dtype = np.float32)
-currDF = pd.read_csv(resultFile, sep='\t', usecols = ['CSA_STORAGE_IN'],  dtype = np.float32)
+currDF = pd.read_csv(resultFile, sep='\t', usecols = ['CSA_EH_IN'],  dtype = np.float32)
 
 voltage = []
 irr = []
@@ -23,7 +23,7 @@ for _, i in currDF.itertuples():
 
 iterator = [[irr[i],curr[i]*voltage[i]] for i in range(35000, 49000, 1)]
 
-x = np.array([((i/10000 * 0.93 * 4/1000 * 18.2)/y) for i, y in iterator])
+x = np.array([(y/(i/10000 * 0.93 * 4/1000)) for i, y in iterator])
 
 print(np.mean(x)*18.2)
 #plt.plot(voltage)
