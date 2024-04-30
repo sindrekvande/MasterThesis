@@ -29,6 +29,7 @@ bool check_first_boot() {
 
 int checkpoint_create() {
     printk("#### CREATING CHECKPOINT ###\n");
+    checkpoint_pd += 1; // SIMPLIFIED SOLUTION
     get_program_state(checkpoint_data);
 
     uint32_t offset = PARTITION_OFFSET;
@@ -44,7 +45,6 @@ int checkpoint_create() {
 		}
     }
     //return save_ram_to_flash(); // FULL SOLUTION
-    checkpoint_pd += 1; // SIMPLIFIED SOLUTION
     return 0; // SIMPLIFIED SOLUTION
 }
 

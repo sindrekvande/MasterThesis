@@ -35,6 +35,7 @@ uint32_t read_from_flash(uint32_t address) {
 
 int checkpoint_create() {
     printk("#### CREATING CHECKPOINT ###\n");
+    checkpoint_pd += 1; // SIMPLIFIED SOLUTION
     get_program_state(checkpoint_data);
 
     uint32_t offset = PARTITION_OFFSET;
@@ -48,7 +49,6 @@ int checkpoint_create() {
         nrfx_nvmc_bytes_write(write_address, &checkpoint_data[i], 4);
     }
     //return save_ram_to_flash(); // FULL SOLUTION
-    checkpoint_pd += 1; // SIMPLIFIED SOLUTION
     return 0; // SIMPLIFIED SOLUTION
 }
 
