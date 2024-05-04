@@ -84,6 +84,7 @@ int main(void) {
             
             case DEEP_SLEEP:
                 checkpoint_create();
+                set_first_boot_flag();
                 lpcomp_wakeup_init();
                 printf("DEEP SLEEP\n");
                 sys_poweroff();

@@ -3,14 +3,22 @@
 
 const struct device *flash_dev = PARTITION_DEVICE;
 uint32_t checkpoint_data[CHECKPOINT_WORDS] = {0};
+uint32_t first_boot_flag;
 
 bool check_first_boot() {
-    uint32_t first_boot_flag_value = 0xA5A5A5A5;
-    uint32_t first_boot_flag;
     if (flash_read(flash_dev, FIRST_BOOT_FLAG_ADDR, &first_boot_flag, sizeof(first_boot_flag)) != 0) {
         printk("Flash read failed at first boot check.\n");
         return false;
     }
+    if (first_boot_flag = FIRST_BOOT_FLAG_VALUE) {
+        return false;
+    } else {
+        return true;
+    }
+}
+
+bool set_first_boot_flag() {
+    uint32_t first_boot_flag_value = 0xA5A5A5A5;
     if (first_boot_flag != FIRST_BOOT_FLAG_VALUE) {
         if (flash_erase(flash_dev, FIRST_BOOT_FLAG_ADDR, FLASH_PAGE_SIZE) != 0) {
             printk("Flash erase failed during first boot flag set.\n");
@@ -23,8 +31,6 @@ bool check_first_boot() {
         printk("First boot detected and flag set.\n");
         return true;
     }
-    printk("Not the first boot.\n");
-    return false;
 }
 
 int checkpoint_create() {
