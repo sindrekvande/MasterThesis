@@ -12,6 +12,7 @@ void lpcomp_event_handler(nrf_lpcomp_event_t event_type) {
         nrfx_lpcomp_uninit();
         lpcomp_wakeup_init();
         checkpoint_create();
+        set_first_boot_flag();
         sys_poweroff();
         NRF_LPCOMP->EVENTS_DOWN = 0;
     } else if (NRF_LPCOMP->EVENTS_UP == 1){
@@ -50,7 +51,7 @@ void lpcomp_idle_init(void) {
 
     nrfx_lpcomp_config_t config = NRFX_LPCOMP_DEFAULT_CONFIG(NRF_LPCOMP_INPUT_1);
     config.config.detection = NRF_LPCOMP_DETECT_DOWN;
-    config.config.reference = NRF_LPCOMP_REF_SUPPLY_5_8; // Threshold 1.875 (1.8V)
+    config.config.reference = NRF_LPCOMP_REF_SUPPLY_5_8; // Threshold 1.875 (1.9V)
 
     err_code = nrfx_lpcomp_init(&config, NULL);
     handle_error(err_code);

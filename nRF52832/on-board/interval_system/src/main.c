@@ -72,6 +72,7 @@ int main(void) {
                     current_state = SLEEP;
                 }
                 checkpoint_create();
+                set_first_boot_flag();
                 break;
             
             case COMMUNICATE:
