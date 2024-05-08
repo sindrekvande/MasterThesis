@@ -23,7 +23,7 @@ void lpcomp_wakeup_init() {
 
     nrfx_lpcomp_config_t config = NRFX_LPCOMP_DEFAULT_CONFIG(NRF_LPCOMP_INPUT_1);
     config.config.detection = NRF_LPCOMP_DETECT_UP;
-    config.config.reference = NRF_LPCOMP_REF_SUPPLY_7_8; // Threshold 2.625V (2.5V)
+    config.config.reference = NRF_LPCOMP_REF_SUPPLY_6_8; // Threshold (6/8)*3.3 = 2.475 (2.5V)
 
 
     err_code = nrfx_lpcomp_init(&config, NULL);

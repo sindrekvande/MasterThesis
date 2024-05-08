@@ -22,14 +22,11 @@ bool check_first_boot() {
 bool set_first_boot_flag() {
     uint32_t first_boot_flag_value = 0xA5A5A5A5;
     if (first_boot_flag != FIRST_BOOT_FLAG_VALUE) {
-        if (flash_erase(flash_dev, FIRST_BOOT_FLAG_ADDR, FLASH_PAGE_SIZE) != 0) {
+        if (nrfx_nvmc_page_erase(FIRST_BOOT_FLAG_ADDR) != NRFX_SUCCESS) {
             printk("Flash erase failed during first boot flag set.\n");
             return false;
         }
-        if (flash_write(flash_dev, FIRST_BOOT_FLAG_ADDR, &first_boot_flag_value, sizeof(FIRST_BOOT_FLAG_VALUE)) != 0) {
-            printk("Flash write failed during first boot flag set.\n");
-            return false;
-        }
+        nrfx_nvmc_bytes_write(FIRST_BOOT_FLAG_ADDR, &first_boot_flag_value, 4);
         printk("First boot detected and flag set.\n");
         return true;
     }
@@ -114,8 +111,6 @@ void get_program_state(uint32_t * buf) { // Number of stored values needs to mat
 
 void set_program_state(uint32_t * buf) {
     printk("#### SET PROGRAM STATE ####\n");
-    
-    recover_pd += 1; // SIMPLIFIED SOLUTION
 
     next_state = buf[0]; 
     current_sample = buf[1]; 
@@ -134,6 +129,8 @@ void set_program_state(uint32_t * buf) {
         communicate_samples[i] = buf[data_index];
         data_index += 1;
     }
+
+    recover_pd += 1; // SIMPLIFIED SOLUTION
 
     // FULL SOLUTION //
     //__asm__ volatile("MOV R0, %0" : : "r" (buf[0]) : );

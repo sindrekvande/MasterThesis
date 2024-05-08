@@ -114,8 +114,6 @@ void get_program_state(uint32_t * buf) { // Number of stored values needs to mat
 void set_program_state(uint32_t * buf) {
     printk("#### SET PROGRAM STATE ####\n");
 
-    recover_pd += 1; // SIMPLIFIED SOLUTION
-
     next_state = buf[0];
     current_sample = buf[1];
     //next_state = 0;
@@ -133,6 +131,8 @@ void set_program_state(uint32_t * buf) {
         communicate_samples[i] = buf[data_index];
         data_index += 1;
     }
+
+    recover_pd += 1; // SIMPLIFIED SOLUTION
 
     // FULL SOLUTION //
     //__asm__ volatile("MOV R0, %0" : : "r" (buf[0]) : );

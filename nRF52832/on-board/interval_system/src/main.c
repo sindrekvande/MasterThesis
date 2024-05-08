@@ -66,25 +66,27 @@ int main(void) {
                 if (current_sample == NUM_SAMPLES){
                     current_sample = 0;
                     next_state = COMMUNICATE;
-                    current_state = COMMUNICATE;
+                    current_state = next_state;
                 } else {
                     next_state = SLEEP;
-                    current_state = SLEEP;
+                    current_state = next_state;
                 }
                 checkpoint_create();
                 set_first_boot_flag();
                 break;
             
             case COMMUNICATE:
+                int time = 0;
                 advertisment_init();
-                while(!notif_flag){
-                    k_sleep(K_MSEC(1)); 
+                while(!notif_flag && time < 10){
+                    k_sleep(K_SECONDS(1));
+                    time++;
                 }
                 communicate_handler();
                 advertisment_uninit();
                 checkpoint_create();
                 next_state = SLEEP;
-                current_state = SLEEP;
+                current_state = next_state;
                 break;
             
             case RECOVER:
