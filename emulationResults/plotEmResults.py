@@ -27,8 +27,9 @@ dcdccsa = []
 dcdcbuf = []
 dcdccurr = []
 timeL = []
-energy = 0
-capacitance = 385 * 10 ** (-3)
+capacitance = 200 * 10 ** (-3)
+#capacitance = 385 * 10 ** (-3)
+energy = 0 #1.93 ** 2 * capacitance / 2
 datetime_str = '%Y-%m-%d %H:%M:%S.%f'
 
 for i, t in timeDF.itertuples():
@@ -77,7 +78,7 @@ plt.plot(voltage)
 plt.plot(voltageExp)
 plt.plot(irr)
 plt.plot(dcdccurr)
-#plt.plot(en)
+plt.plot(en)
 #plt.plot(x)
 #plt.axhline(np.median(x), color='r')
 #plt.axhline(26, color='orange')
