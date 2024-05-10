@@ -10,7 +10,7 @@
 
 #define NUMBER_OF_CHANNELS 2
 
-#define DEEP_SLEEP_THRESHOLD 2161 // Raw value (1.9V)
+#define DEEP_SLEEP_THRESHOLD 2482 // Raw value (3.3/2)*4096
 #define NUM_SAMPLES 30
 #define SAMPLE_SIZE 30
 

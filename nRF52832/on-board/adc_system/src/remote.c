@@ -90,8 +90,8 @@ int advertisment_init(void) {
 
     const struct bt_le_adv_param adv_param = {
         .options = BT_LE_ADV_OPT_CONNECTABLE,
-        .interval_min = BT_GAP_ADV_FAST_INT_MIN_2,
-        .interval_max = BT_GAP_ADV_FAST_INT_MAX_2,
+        .interval_min = 0x0020, //BT_GAP_ADV_FAST_INT_MIN_1,
+        .interval_max = 0x0070,
     };
 
     int err = bt_le_adv_start(&adv_param, ad, ARRAY_SIZE(ad), sd, ARRAY_SIZE(sd));

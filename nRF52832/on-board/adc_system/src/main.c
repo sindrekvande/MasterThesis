@@ -74,8 +74,8 @@ int main(void) {
             case COMMUNICATE:
                 int time = 0;
                 advertisment_init();
-                while(!notif_flag && time < 10){
-                    k_sleep(K_SECONDS(1));
+                while(!notif_flag && time < 10000){
+                    k_sleep(K_MSEC(1));
                     time++;
                 }
                 communicate_handler();         

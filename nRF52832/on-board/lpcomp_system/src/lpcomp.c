@@ -34,7 +34,7 @@ void lpcomp_wakeup_init(void) {
 
     nrfx_lpcomp_config_t config = NRFX_LPCOMP_DEFAULT_CONFIG(NRF_LPCOMP_INPUT_1); 
     config.config.detection = NRF_LPCOMP_DETECT_UP;
-    config.config.reference = NRF_LPCOMP_REF_SUPPLY_6_8; // Threshold (6/8)*3.3 = 2.475 (2.5V)
+    config.config.reference = NRF_LPCOMP_REF_SUPPLY_13_16; // Threshold (13/16)*3.3 = 2.68125 (2.7V)
 
     err_code = nrfx_lpcomp_init(&config, NULL);
     handle_error(err_code);
@@ -51,7 +51,7 @@ void lpcomp_idle_init(void) {
 
     nrfx_lpcomp_config_t config = NRFX_LPCOMP_DEFAULT_CONFIG(NRF_LPCOMP_INPUT_1);
     config.config.detection = NRF_LPCOMP_DETECT_DOWN;
-    config.config.reference = NRF_LPCOMP_REF_SUPPLY_9_16; // Threshold (9/16)*3.3 = 1.85625 (1.9V)
+    config.config.reference = NRF_LPCOMP_REF_SUPPLY_9_16; // Threshold (5/8)*3.3 = 2.0625 (2V)
 
     err_code = nrfx_lpcomp_init(&config, NULL);
     handle_error(err_code);
