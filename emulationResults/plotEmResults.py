@@ -8,7 +8,7 @@ import time
 from scipy.signal import savgol_filter
 
 
-resultFile = 'emulationResults/Test_lpcomp_156_2_2.7_200mF.tsv'
+resultFile = 'emulationResults/Test_interval_240_2_2.7_200_half.tsv'
 
 VoltageDF = pd.read_csv(resultFile, sep='\t', usecols = ['STORAGE_OUT'],  dtype = np.float32)
 irrDF = pd.read_csv(resultFile, sep='\t', usecols = ['irrValue'],  dtype = np.float32)
@@ -71,38 +71,38 @@ for _, b in dcdcbufDF.itertuples():
     dcdcbuf.append(b)
 
 
-iterator = [[irr[i],curr[i]*voltage[i]] for i in range(36000, len(curr), 1)]
-timeS = np.array(timeS[36000:]) - timedelta(hours=17, minutes=37) #20:55 to 03:18
+#iterator = [[irr[i],curr[i]*voltage[i]] for i in range(5000, 77000, 1)]
+timeS = np.array(timeS) - timedelta(hours=2, minutes=30) #20:55 to 03:18, 09:15 to 06:51
 #for e in range(len(timeS)):
 #    timeS[e] = timeS[e].strftime("%H%M%S")
 #    timeS[e] = datetime.strptime(timeS[e], "%H%M%S")
 
 #x = np.array([((i/10000 * 0.93 * 3/1000)/y) for i, y in iterator])
-x = np.array([y for _, y in iterator])
-irr = np.array([(i/10000 * 0.93 * 3/1000) for i, _ in iterator])
+#x = np.array([y for _, y in iterator])
+#irr = np.array([(i/10000 * 0.93 * 3/1000) for i, _ in iterator])
 
-xx = savgol_filter(x, 1001, 2)
+#xx = savgol_filter(x, 1001, 2)
 
-dif = irr / xx
+#dif = irr / xx
 
 
 dcdccurr = [dcdccsa[i] * dcdcbuf[i] for i in range(len(dcdccsa))]
-
+timeS = np.array(timeS)
 #print(np.mean(x))
 plt.figure(figsize=(8,3))
-#plt.plot(timeS[:33455], voltage[:33455], label='Measured')
-#plt.plot(timeS[:31929], voltageExp[:31929], label='Expected')
+plt.plot(timeS, voltage, label='Measured')
+#plt.plot(voltageExp, label='Expected')
 #plt.plot(irr)
-#plt.plot(dcdccurr)
+plt.plot(timeS, dcdccurr)
 #plt.plot(en)
 #plt.plot(x)
 #plt.axhline(np.mean(x), color='r')
 #print(np.mean(dif))
-plt.plot(timeS, x, label='Unfiltered')
-plt.plot(timeS, xx, label='Filtered')
+#plt.plot(timeS, x, label='Unfiltered')
+#plt.plot(timeS, xx, label='Filtered')
 #plt.plot(timeS, irr, label='Expected', color='r')
 #plt.ylim(top=2.8)
-plt.ylabel('Power [W]')
+plt.ylabel('Voltage [V]')
 plt.xlabel('Time of day')
 xformatter = mdates.DateFormatter('%H:%M')
 plt.gcf().axes[0].xaxis.set_major_formatter(xformatter)
