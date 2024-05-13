@@ -1,0 +1,17 @@
+season	day	capacitance	sampleNum	sampleSize	sleep	start	stop
+summer	7	147	10	10	5	2.7	2.0
+summer	7	147	10	10	10	2.7	2.0
+summer	7	147	10	30	5	2.7	2.0
+summer	7	147	10	30	10	2.7	2.0
+summer	7	147	30	10	5	2.7	2.0
+summer	7	147	30	10	10	2.7	2.0
+summer	7	147	30	30	5	2.7	2.0
+summer	7	147	30	30	10	2.7	2.0
+summer	7	200	10	10	5	2.7	2.0
+summer	7	200	10	10	10	2.7	2.0
+summer	7	200	10	30	5	2.7	2.0
+summer	7	200	10	30	10	2.7	2.0
+summer	7	200	30	10	5	2.7	2.0
+summer	7	200	30	10	10	2.7	2.0
+summer	7	200	30	30	5	2.7	2.0
+summer	7	200	30	30	10	2.7	2.0

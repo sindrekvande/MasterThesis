@@ -46,7 +46,7 @@ def singleSim(
     thresholdStop   = 2.2,
     thresholdDead   = 1.7,
     season          = 'winter',
-    scale           = 3/1000):
+    scale           = 5/1000):
 
     btSize = sampleNum*sampleSize
     
@@ -105,7 +105,7 @@ def singleSim(
             for i in range(60):
                 capacitor.addEnergy(irrValue)
                 energyUse = 0
-                #if capacitor.voltage >= 2.6 and flag:
+                #if capacitor.voltage >= 2.4 and flag:
                 #    print(x)
                 #    flag = 0
                 if capacitor.voltage < thresholdDead:
@@ -273,7 +273,7 @@ def plotGraphs(barLoc, energyLoc, timeLoc, timeResults, barResults, energyBar, m
 def multiSim():
     headers = ['Season', 'Day', 'Capacitance [mF]', 'SampleNum', 'SampleSize', 'Sleep', 'Start', 'Stop', '', 'Resulting metrics', 'Energy Use', 'Time plot']
     metrics = ['Checkpointed', 'Recovered', 'Measured', 'Communicated']
-    simSetFile = 'simSet7'
+    simSetFile = 'simSet8'
     #os.rmdir('simulation/results/'+simSetFile+'Results')
     os.makedirs('simulation/results/'+simSetFile+'Results')
     resultLoc = 'simulation/results/'+simSetFile+'Results/'+simSetFile+'.xlsx'
