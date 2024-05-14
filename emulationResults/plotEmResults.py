@@ -8,16 +8,16 @@ import time
 from scipy.signal import savgol_filter
 
 
-resultFile = 'emulationResults/Test_interval_240_2_2.7_200.tsv'
+resultFile = 'emulationResults/Test_lpcomp_240_2_2.7_147mF.tsv'
 
-VoltageDF = pd.read_csv(resultFile, sep='\t', usecols = ['STORAGE_OUT'],  dtype = np.float32)
+VoltageDF = pd.read_csv(resultFile, sep='\t', usecols = ['CSA_STORAGE_IN_+'],  dtype = np.float32)
 irrDF = pd.read_csv(resultFile, sep='\t', usecols = ['irrValue'],  dtype = np.float32)
 currDF = pd.read_csv(resultFile, sep='\t', usecols = ['CSA_STORAGE_IN'],  dtype = np.float32)
 enDF = pd.read_csv(resultFile, sep='\t', usecols = ['DCDC_OUT_BUF'],  dtype = np.float32)
 en1DF = pd.read_csv(resultFile, sep='\t', usecols = ['EXT_AN_IN_1'],  dtype = np.float32)
 timeDF = pd.read_csv(resultFile, sep='\t', usecols = ['datetime'])
-dcdccsaDF = pd.read_csv(resultFile, sep='\t', usecols = ['CSA_DCDC_OUT'],  dtype = np.float32)
-dcdcbufDF = pd.read_csv(resultFile, sep='\t', usecols = ['DCDC_OUT_BUF'],  dtype = np.float32)
+dcdccsaDF = pd.read_csv(resultFile, sep='\t', usecols = ['CSA_STORAGE_OUT'],  dtype = np.float32)
+dcdcbufDF = pd.read_csv(resultFile, sep='\t', usecols = ['STORAGE_OUT'],  dtype = np.float32)
 
 voltage = []
 voltageExp = []
@@ -71,8 +71,10 @@ for _, b in dcdcbufDF.itertuples():
     dcdcbuf.append(b)
 
 
-#iterator = [[irr[i],curr[i]*voltage[i]] for i in range(5000, 77000, 1)]
-timeS = np.array(timeS) - timedelta(hours=2, minutes=30) #20:55 to 03:18, 09:15 to 06:51
+#iterator = [[irr[i],curr[i]*voltage[i] * timeL[i]] for i in range(len(irr))]
+inEnergy = [curr[i]*voltage[i] * timeL[i] for i in range(len(irr))]
+timeS = np.array(timeS) - timedelta(hours=13, minutes=44) #20:55 to 03:18, 09:15 to 06:51
+
 #for e in range(len(timeS)):
 #    timeS[e] = timeS[e].strftime("%H%M%S")
 #    timeS[e] = datetime.strptime(timeS[e], "%H%M%S")
@@ -86,14 +88,15 @@ timeS = np.array(timeS) - timedelta(hours=2, minutes=30) #20:55 to 03:18, 09:15 
 #dif = irr / xx
 
 
-dcdccurr = [dcdccsa[i] * dcdcbuf[i] for i in range(len(dcdccsa))]
-timeS = np.array(timeS)
+dcdcenergy = [dcdccsa[i] * dcdcbuf[i] * timeL[i] for i in range(len(dcdccsa))]
+print(np.sum(dcdcenergy))
+print(np.sum(inEnergy))
 #print(np.mean(x))
 plt.figure(figsize=(8,3))
 plt.plot(timeS, voltage, label='Measured')
 #plt.plot(voltageExp, label='Expected')
 #plt.plot(irr)
-plt.plot(timeS, dcdccurr)
+#plt.plot(timeS, dcdccurr)
 #plt.plot(en)
 #plt.plot(x)
 #plt.axhline(np.mean(x), color='r')
@@ -102,12 +105,12 @@ plt.plot(timeS, dcdccurr)
 #plt.plot(timeS, xx, label='Filtered')
 #plt.plot(timeS, irr, label='Expected', color='r')
 #plt.ylim(top=2.8)
-plt.ylabel('Voltage [V]')
-plt.xlabel('Time of day')
+#plt.ylabel('Voltage [V]')
+#plt.xlabel('Time of day')
 xformatter = mdates.DateFormatter('%H:%M')
 plt.gcf().axes[0].xaxis.set_major_formatter(xformatter)
-plt.legend(loc='upper right')
-plt.tight_layout()
+#plt.legend(loc='upper right')
+#plt.tight_layout()
 #plt.plot(dif)
 
 #plt.axhline(26, color='orange')

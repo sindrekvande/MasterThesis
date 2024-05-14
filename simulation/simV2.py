@@ -23,6 +23,7 @@ class energyStorage:
         if self.energy > self.maxEnergy:
             self.energy = self.maxEnergy
         self.voltage = np.sqrt(2*self.energy/self.capacitance)
+        return irr / 10000 * 0.93 * self.scale
 
     def useEnergy(self, energy):
         if self.energy < energy:
@@ -46,20 +47,20 @@ def singleSim(
     thresholdStop   = 2.2,
     thresholdDead   = 1.7,
     season          = 'winter',
-    scale           = 5/1000):
+    scale           = 3/1000):
 
     btSize = sampleNum*sampleSize
     
     capacitorSize /= 1000
 
-    measurePower        = 1.7 * 10 ** -3 * 3
-    communicatePower    = 4 * 10 ** -3 * 3
+    measurePower        = 4 * 10 ** -3 * 3
+    communicatePower    = 1.7 * 10 ** -3 * 3
     sleepPower          = 2.4 * 10 ** -6 * 3
     deepSleepPower      = 0.7 * 10 ** -6 * 3
     checkpointPower     = 3.0 * 10 ** -3 * 3
     recoverPower        = 3.7 * 10 ** -3 * 3
     measureTime         = sampleSize/200
-    communicateTime     = 1 + (btSize//10 + (1 if btSize%10 else 0)) *0.009
+    communicateTime     = 3.5 + (btSize//10 + (1 if btSize%10 else 0)) *0.009
 
     interval = 'Interval'
     adc = 'ADC'
@@ -99,15 +100,18 @@ def singleSim(
         deepSleepEnergy = 0
         totalEnergy = 0
         measureCount = sampleNum
-        #flag = 1
+        totalEnergyIn = 0
+        communicatedBool = False
+        flag = 1
         
         for x, irrValue in trace.itertuples():
             for i in range(60):
-                capacitor.addEnergy(irrValue)
+                totalEnergyIn += capacitor.addEnergy(irrValue)
                 energyUse = 0
-                #if capacitor.voltage >= 2.4 and flag:
-                #    print(x)
-                #    flag = 0
+                if capacitor.voltage >= 2.4 and flag:
+                    print(x)
+                    print(totalEnergyIn)
+                    flag = 0
                 if capacitor.voltage < thresholdDead:
                     dead = True
                 if not dead:
@@ -124,6 +128,7 @@ def singleSim(
                                 sleepEnergy -= energies['sleep'] * communicateTime
                                 measureCount = sampleNum
                                 timesCommunicated += 1
+                                communicatedBool = True
                                 if s == interval:
                                     energyUse += energies['checkpoint'] - energies['sleep'] * timeToSave
                                     timesCheckpointed += 1
@@ -160,7 +165,9 @@ def singleSim(
                                     deepSleep = True
                             if sleepTime > 1:
                                 sleep = True
-                                sleepCount = sleepTime -1
+                                sleepCount = sleepTime - 1 + (4 if communicatedBool else 0)
+                                if communicatedBool:
+                                    communicatedBool = False
                         else:
                             energyUse += energies['sleep']
                             sleepEnergy += energies['sleep']
@@ -202,6 +209,7 @@ def singleSim(
                 if s == svs:
                     irrTrace.append(irrValue)
 
+        print(totalEnergyIn)
         timeResults[sCount] = voltage
         if s == svs:
             timeResults[sCount + 1] = irrTrace
@@ -273,7 +281,7 @@ def plotGraphs(barLoc, energyLoc, timeLoc, timeResults, barResults, energyBar, m
 def multiSim():
     headers = ['Season', 'Day', 'Capacitance [mF]', 'SampleNum', 'SampleSize', 'Sleep', 'Start', 'Stop', '', 'Resulting metrics', 'Energy Use', 'Time plot']
     metrics = ['Checkpointed', 'Recovered', 'Measured', 'Communicated']
-    simSetFile = 'simSet8'
+    simSetFile = 'simSet9'
     #os.rmdir('simulation/results/'+simSetFile+'Results')
     os.makedirs('simulation/results/'+simSetFile+'Results')
     resultLoc = 'simulation/results/'+simSetFile+'Results/'+simSetFile+'.xlsx'
@@ -295,7 +303,8 @@ def multiSim():
                                                         capacitorSize   = row['capacitance'],
                                                         thresholdStart  = row['start'],
                                                         thresholdStop   = row['stop'],
-                                                        season          = row['season'])
+                                                        season          = row['season'],
+                                                        scale           = 3/1000 * (8.618893646327617/6.3966938148805825 if row['day'] == 10 else 1))
         
         plotGraphs(barLoc, energyLoc, timeLoc, timeResults, barResults, energyBar, metrics, row)
 
