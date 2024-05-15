@@ -8,8 +8,7 @@ import time
 from scipy.signal import savgol_filter
 
 
-#resultFile = 'emulationResults\Test_adc_240_2_2.7_200.tsv'
-resultFile = 'emulationResults\Test_interval_240_2_2.7_200.tsv'
+resultFile = 'emulationResults\Test_interval_240_2_2.7_147_half.tsv'
 
 VoltageDF = pd.read_csv(resultFile, sep='\t', usecols = ['STORAGE_OUT'],  dtype = np.float32)
 irrDF = pd.read_csv(resultFile, sep='\t', usecols = ['irrValue'],  dtype = np.float32)
