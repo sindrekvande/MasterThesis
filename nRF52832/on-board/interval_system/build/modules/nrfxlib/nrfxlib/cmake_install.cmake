@@ -39,16 +39,16 @@ endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for the subdirectory.
-  include("C:/Users/kriss/Desktop/NTNU/MasterThesis/nRF52832/on-chip/interval_system/build/modules/nrfxlib/nrfxlib/crypto/cmake_install.cmake")
+  include("C:/Users/kriss/Desktop/NTNU/MasterThesis/nRF52832/on-board/interval_system/build/modules/nrfxlib/nrfxlib/crypto/cmake_install.cmake")
 endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for the subdirectory.
-  include("C:/Users/kriss/Desktop/NTNU/MasterThesis/nRF52832/on-chip/interval_system/build/modules/nrfxlib/nrfxlib/softdevice_controller/cmake_install.cmake")
+  include("C:/Users/kriss/Desktop/NTNU/MasterThesis/nRF52832/on-board/interval_system/build/modules/nrfxlib/nrfxlib/softdevice_controller/cmake_install.cmake")
 endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for the subdirectory.
-  include("C:/Users/kriss/Desktop/NTNU/MasterThesis/nRF52832/on-chip/interval_system/build/modules/nrfxlib/nrfxlib/mpsl/cmake_install.cmake")
+  include("C:/Users/kriss/Desktop/NTNU/MasterThesis/nRF52832/on-board/interval_system/build/modules/nrfxlib/nrfxlib/mpsl/cmake_install.cmake")
 endif()
 

@@ -39,231 +39,231 @@ endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for the subdirectory.
-  include("C:/Users/kriss/Desktop/NTNU/MasterThesis/nRF52832/on-chip/interval_system/build/zephyr/arch/cmake_install.cmake")
+  include("C:/Users/kriss/Desktop/NTNU/MasterThesis/nRF52832/on-board/interval_system/build/zephyr/arch/cmake_install.cmake")
 endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for the subdirectory.
-  include("C:/Users/kriss/Desktop/NTNU/MasterThesis/nRF52832/on-chip/interval_system/build/zephyr/lib/cmake_install.cmake")
+  include("C:/Users/kriss/Desktop/NTNU/MasterThesis/nRF52832/on-board/interval_system/build/zephyr/lib/cmake_install.cmake")
 endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for the subdirectory.
-  include("C:/Users/kriss/Desktop/NTNU/MasterThesis/nRF52832/on-chip/interval_system/build/zephyr/soc/cmake_install.cmake")
+  include("C:/Users/kriss/Desktop/NTNU/MasterThesis/nRF52832/on-board/interval_system/build/zephyr/soc/cmake_install.cmake")
 endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for the subdirectory.
-  include("C:/Users/kriss/Desktop/NTNU/MasterThesis/nRF52832/on-chip/interval_system/build/zephyr/boards/cmake_install.cmake")
+  include("C:/Users/kriss/Desktop/NTNU/MasterThesis/nRF52832/on-board/interval_system/build/zephyr/boards/cmake_install.cmake")
 endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for the subdirectory.
-  include("C:/Users/kriss/Desktop/NTNU/MasterThesis/nRF52832/on-chip/interval_system/build/zephyr/subsys/cmake_install.cmake")
+  include("C:/Users/kriss/Desktop/NTNU/MasterThesis/nRF52832/on-board/interval_system/build/zephyr/subsys/cmake_install.cmake")
 endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for the subdirectory.
-  include("C:/Users/kriss/Desktop/NTNU/MasterThesis/nRF52832/on-chip/interval_system/build/zephyr/drivers/cmake_install.cmake")
+  include("C:/Users/kriss/Desktop/NTNU/MasterThesis/nRF52832/on-board/interval_system/build/zephyr/drivers/cmake_install.cmake")
 endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for the subdirectory.
-  include("C:/Users/kriss/Desktop/NTNU/MasterThesis/nRF52832/on-chip/interval_system/build/modules/nrf/cmake_install.cmake")
+  include("C:/Users/kriss/Desktop/NTNU/MasterThesis/nRF52832/on-board/interval_system/build/modules/nrf/cmake_install.cmake")
 endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for the subdirectory.
-  include("C:/Users/kriss/Desktop/NTNU/MasterThesis/nRF52832/on-chip/interval_system/build/modules/wfa-qt-control-app/cmake_install.cmake")
+  include("C:/Users/kriss/Desktop/NTNU/MasterThesis/nRF52832/on-board/interval_system/build/modules/wfa-qt-control-app/cmake_install.cmake")
 endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for the subdirectory.
-  include("C:/Users/kriss/Desktop/NTNU/MasterThesis/nRF52832/on-chip/interval_system/build/modules/mcuboot/cmake_install.cmake")
+  include("C:/Users/kriss/Desktop/NTNU/MasterThesis/nRF52832/on-board/interval_system/build/modules/mcuboot/cmake_install.cmake")
 endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for the subdirectory.
-  include("C:/Users/kriss/Desktop/NTNU/MasterThesis/nRF52832/on-chip/interval_system/build/modules/mbedtls/cmake_install.cmake")
+  include("C:/Users/kriss/Desktop/NTNU/MasterThesis/nRF52832/on-board/interval_system/build/modules/mbedtls/cmake_install.cmake")
 endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for the subdirectory.
-  include("C:/Users/kriss/Desktop/NTNU/MasterThesis/nRF52832/on-chip/interval_system/build/modules/trusted-firmware-m/cmake_install.cmake")
+  include("C:/Users/kriss/Desktop/NTNU/MasterThesis/nRF52832/on-board/interval_system/build/modules/trusted-firmware-m/cmake_install.cmake")
 endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for the subdirectory.
-  include("C:/Users/kriss/Desktop/NTNU/MasterThesis/nRF52832/on-chip/interval_system/build/modules/cjson/cmake_install.cmake")
+  include("C:/Users/kriss/Desktop/NTNU/MasterThesis/nRF52832/on-board/interval_system/build/modules/cjson/cmake_install.cmake")
 endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for the subdirectory.
-  include("C:/Users/kriss/Desktop/NTNU/MasterThesis/nRF52832/on-chip/interval_system/build/modules/azure-sdk-for-c/cmake_install.cmake")
+  include("C:/Users/kriss/Desktop/NTNU/MasterThesis/nRF52832/on-board/interval_system/build/modules/azure-sdk-for-c/cmake_install.cmake")
 endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for the subdirectory.
-  include("C:/Users/kriss/Desktop/NTNU/MasterThesis/nRF52832/on-chip/interval_system/build/modules/cirrus-logic/cmake_install.cmake")
+  include("C:/Users/kriss/Desktop/NTNU/MasterThesis/nRF52832/on-board/interval_system/build/modules/cirrus-logic/cmake_install.cmake")
 endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for the subdirectory.
-  include("C:/Users/kriss/Desktop/NTNU/MasterThesis/nRF52832/on-chip/interval_system/build/modules/openthread/cmake_install.cmake")
+  include("C:/Users/kriss/Desktop/NTNU/MasterThesis/nRF52832/on-board/interval_system/build/modules/openthread/cmake_install.cmake")
 endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for the subdirectory.
-  include("C:/Users/kriss/Desktop/NTNU/MasterThesis/nRF52832/on-chip/interval_system/build/modules/memfault-firmware-sdk/cmake_install.cmake")
+  include("C:/Users/kriss/Desktop/NTNU/MasterThesis/nRF52832/on-board/interval_system/build/modules/memfault-firmware-sdk/cmake_install.cmake")
 endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for the subdirectory.
-  include("C:/Users/kriss/Desktop/NTNU/MasterThesis/nRF52832/on-chip/interval_system/build/modules/canopennode/cmake_install.cmake")
+  include("C:/Users/kriss/Desktop/NTNU/MasterThesis/nRF52832/on-board/interval_system/build/modules/canopennode/cmake_install.cmake")
 endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for the subdirectory.
-  include("C:/Users/kriss/Desktop/NTNU/MasterThesis/nRF52832/on-chip/interval_system/build/modules/chre/cmake_install.cmake")
+  include("C:/Users/kriss/Desktop/NTNU/MasterThesis/nRF52832/on-board/interval_system/build/modules/chre/cmake_install.cmake")
 endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for the subdirectory.
-  include("C:/Users/kriss/Desktop/NTNU/MasterThesis/nRF52832/on-chip/interval_system/build/modules/cmsis/cmake_install.cmake")
+  include("C:/Users/kriss/Desktop/NTNU/MasterThesis/nRF52832/on-board/interval_system/build/modules/cmsis/cmake_install.cmake")
 endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for the subdirectory.
-  include("C:/Users/kriss/Desktop/NTNU/MasterThesis/nRF52832/on-chip/interval_system/build/modules/fatfs/cmake_install.cmake")
+  include("C:/Users/kriss/Desktop/NTNU/MasterThesis/nRF52832/on-board/interval_system/build/modules/fatfs/cmake_install.cmake")
 endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for the subdirectory.
-  include("C:/Users/kriss/Desktop/NTNU/MasterThesis/nRF52832/on-chip/interval_system/build/modules/hal_nordic/cmake_install.cmake")
+  include("C:/Users/kriss/Desktop/NTNU/MasterThesis/nRF52832/on-board/interval_system/build/modules/hal_nordic/cmake_install.cmake")
 endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for the subdirectory.
-  include("C:/Users/kriss/Desktop/NTNU/MasterThesis/nRF52832/on-chip/interval_system/build/modules/st/cmake_install.cmake")
+  include("C:/Users/kriss/Desktop/NTNU/MasterThesis/nRF52832/on-board/interval_system/build/modules/st/cmake_install.cmake")
 endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for the subdirectory.
-  include("C:/Users/kriss/Desktop/NTNU/MasterThesis/nRF52832/on-chip/interval_system/build/modules/hal_wurthelektronik/cmake_install.cmake")
+  include("C:/Users/kriss/Desktop/NTNU/MasterThesis/nRF52832/on-board/interval_system/build/modules/hal_wurthelektronik/cmake_install.cmake")
 endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for the subdirectory.
-  include("C:/Users/kriss/Desktop/NTNU/MasterThesis/nRF52832/on-chip/interval_system/build/modules/libmetal/cmake_install.cmake")
+  include("C:/Users/kriss/Desktop/NTNU/MasterThesis/nRF52832/on-board/interval_system/build/modules/libmetal/cmake_install.cmake")
 endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for the subdirectory.
-  include("C:/Users/kriss/Desktop/NTNU/MasterThesis/nRF52832/on-chip/interval_system/build/modules/liblc3/cmake_install.cmake")
+  include("C:/Users/kriss/Desktop/NTNU/MasterThesis/nRF52832/on-board/interval_system/build/modules/liblc3/cmake_install.cmake")
 endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for the subdirectory.
-  include("C:/Users/kriss/Desktop/NTNU/MasterThesis/nRF52832/on-chip/interval_system/build/modules/littlefs/cmake_install.cmake")
+  include("C:/Users/kriss/Desktop/NTNU/MasterThesis/nRF52832/on-board/interval_system/build/modules/littlefs/cmake_install.cmake")
 endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for the subdirectory.
-  include("C:/Users/kriss/Desktop/NTNU/MasterThesis/nRF52832/on-chip/interval_system/build/modules/loramac-node/cmake_install.cmake")
+  include("C:/Users/kriss/Desktop/NTNU/MasterThesis/nRF52832/on-board/interval_system/build/modules/loramac-node/cmake_install.cmake")
 endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for the subdirectory.
-  include("C:/Users/kriss/Desktop/NTNU/MasterThesis/nRF52832/on-chip/interval_system/build/modules/lvgl/cmake_install.cmake")
+  include("C:/Users/kriss/Desktop/NTNU/MasterThesis/nRF52832/on-board/interval_system/build/modules/lvgl/cmake_install.cmake")
 endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for the subdirectory.
-  include("C:/Users/kriss/Desktop/NTNU/MasterThesis/nRF52832/on-chip/interval_system/build/modules/lz4/cmake_install.cmake")
+  include("C:/Users/kriss/Desktop/NTNU/MasterThesis/nRF52832/on-board/interval_system/build/modules/lz4/cmake_install.cmake")
 endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for the subdirectory.
-  include("C:/Users/kriss/Desktop/NTNU/MasterThesis/nRF52832/on-chip/interval_system/build/modules/mipi-sys-t/cmake_install.cmake")
+  include("C:/Users/kriss/Desktop/NTNU/MasterThesis/nRF52832/on-board/interval_system/build/modules/mipi-sys-t/cmake_install.cmake")
 endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for the subdirectory.
-  include("C:/Users/kriss/Desktop/NTNU/MasterThesis/nRF52832/on-chip/interval_system/build/modules/nanopb/cmake_install.cmake")
+  include("C:/Users/kriss/Desktop/NTNU/MasterThesis/nRF52832/on-board/interval_system/build/modules/nanopb/cmake_install.cmake")
 endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for the subdirectory.
-  include("C:/Users/kriss/Desktop/NTNU/MasterThesis/nRF52832/on-chip/interval_system/build/modules/nrf_hw_models/cmake_install.cmake")
+  include("C:/Users/kriss/Desktop/NTNU/MasterThesis/nRF52832/on-board/interval_system/build/modules/nrf_hw_models/cmake_install.cmake")
 endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for the subdirectory.
-  include("C:/Users/kriss/Desktop/NTNU/MasterThesis/nRF52832/on-chip/interval_system/build/modules/open-amp/cmake_install.cmake")
+  include("C:/Users/kriss/Desktop/NTNU/MasterThesis/nRF52832/on-board/interval_system/build/modules/open-amp/cmake_install.cmake")
 endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for the subdirectory.
-  include("C:/Users/kriss/Desktop/NTNU/MasterThesis/nRF52832/on-chip/interval_system/build/modules/picolibc/cmake_install.cmake")
+  include("C:/Users/kriss/Desktop/NTNU/MasterThesis/nRF52832/on-board/interval_system/build/modules/picolibc/cmake_install.cmake")
 endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for the subdirectory.
-  include("C:/Users/kriss/Desktop/NTNU/MasterThesis/nRF52832/on-chip/interval_system/build/modules/segger/cmake_install.cmake")
+  include("C:/Users/kriss/Desktop/NTNU/MasterThesis/nRF52832/on-board/interval_system/build/modules/segger/cmake_install.cmake")
 endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for the subdirectory.
-  include("C:/Users/kriss/Desktop/NTNU/MasterThesis/nRF52832/on-chip/interval_system/build/modules/tinycrypt/cmake_install.cmake")
+  include("C:/Users/kriss/Desktop/NTNU/MasterThesis/nRF52832/on-board/interval_system/build/modules/tinycrypt/cmake_install.cmake")
 endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for the subdirectory.
-  include("C:/Users/kriss/Desktop/NTNU/MasterThesis/nRF52832/on-chip/interval_system/build/modules/TraceRecorder/cmake_install.cmake")
+  include("C:/Users/kriss/Desktop/NTNU/MasterThesis/nRF52832/on-board/interval_system/build/modules/TraceRecorder/cmake_install.cmake")
 endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for the subdirectory.
-  include("C:/Users/kriss/Desktop/NTNU/MasterThesis/nRF52832/on-chip/interval_system/build/modules/uoscore-uedhoc/cmake_install.cmake")
+  include("C:/Users/kriss/Desktop/NTNU/MasterThesis/nRF52832/on-board/interval_system/build/modules/uoscore-uedhoc/cmake_install.cmake")
 endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for the subdirectory.
-  include("C:/Users/kriss/Desktop/NTNU/MasterThesis/nRF52832/on-chip/interval_system/build/modules/zcbor/cmake_install.cmake")
+  include("C:/Users/kriss/Desktop/NTNU/MasterThesis/nRF52832/on-board/interval_system/build/modules/zcbor/cmake_install.cmake")
 endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for the subdirectory.
-  include("C:/Users/kriss/Desktop/NTNU/MasterThesis/nRF52832/on-chip/interval_system/build/modules/zscilib/cmake_install.cmake")
+  include("C:/Users/kriss/Desktop/NTNU/MasterThesis/nRF52832/on-board/interval_system/build/modules/zscilib/cmake_install.cmake")
 endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for the subdirectory.
-  include("C:/Users/kriss/Desktop/NTNU/MasterThesis/nRF52832/on-chip/interval_system/build/modules/nrfxlib/cmake_install.cmake")
+  include("C:/Users/kriss/Desktop/NTNU/MasterThesis/nRF52832/on-board/interval_system/build/modules/nrfxlib/cmake_install.cmake")
 endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for the subdirectory.
-  include("C:/Users/kriss/Desktop/NTNU/MasterThesis/nRF52832/on-chip/interval_system/build/modules/connectedhomeip/cmake_install.cmake")
+  include("C:/Users/kriss/Desktop/NTNU/MasterThesis/nRF52832/on-board/interval_system/build/modules/connectedhomeip/cmake_install.cmake")
 endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for the subdirectory.
-  include("C:/Users/kriss/Desktop/NTNU/MasterThesis/nRF52832/on-chip/interval_system/build/zephyr/kernel/cmake_install.cmake")
+  include("C:/Users/kriss/Desktop/NTNU/MasterThesis/nRF52832/on-board/interval_system/build/zephyr/kernel/cmake_install.cmake")
 endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for the subdirectory.
-  include("C:/Users/kriss/Desktop/NTNU/MasterThesis/nRF52832/on-chip/interval_system/build/zephyr/cmake/flash/cmake_install.cmake")
+  include("C:/Users/kriss/Desktop/NTNU/MasterThesis/nRF52832/on-board/interval_system/build/zephyr/cmake/flash/cmake_install.cmake")
 endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for the subdirectory.
-  include("C:/Users/kriss/Desktop/NTNU/MasterThesis/nRF52832/on-chip/interval_system/build/zephyr/cmake/usage/cmake_install.cmake")
+  include("C:/Users/kriss/Desktop/NTNU/MasterThesis/nRF52832/on-board/interval_system/build/zephyr/cmake/usage/cmake_install.cmake")
 endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for the subdirectory.
-  include("C:/Users/kriss/Desktop/NTNU/MasterThesis/nRF52832/on-chip/interval_system/build/zephyr/cmake/reports/cmake_install.cmake")
+  include("C:/Users/kriss/Desktop/NTNU/MasterThesis/nRF52832/on-board/interval_system/build/zephyr/cmake/reports/cmake_install.cmake")
 endif()
 

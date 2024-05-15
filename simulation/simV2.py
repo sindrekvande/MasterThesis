@@ -1,11 +1,13 @@
 import file_handler as fh
 import matplotlib.pyplot as plt
 import numpy as np
-from datetime import datetime as time
+from datetime import datetime
 import pandas as pd
 import gc
 import os
 import xl_handler as xl
+import matplotlib.dates as mdates
+import matplotlib.ticker as ticker
 
 class energyStorage:
     # C = (ε0 * A) / d
@@ -253,14 +255,21 @@ def plotGraphs(barLoc, energyLoc, timeLoc, timeResults, barResults, energyBar, m
     plt.cla()
     plt.close()
 
-    timeAxis = np.linspace(start=0, stop=24, num=len(timeResults[0][1:]))
-    timeAxisTicks = np.arange(0, 24, step=1)
+    startTime = pd.Timestamp('2022-07-02T00:00')
+    endTime = pd.Timestamp('2022-07-03T00:00')
+    timeAxis = np.linspace(start=startTime.value, stop=endTime.value, num=len(timeResults[0][1:]))
+    timeAxis = pd.to_datetime(timeAxis)
+    #timeAxisTicks = np.arange(0, 24, step=1)
     fig = plt.figure(figsize=(10,7))
     gs = fig.add_gridspec(4, hspace=0)
     ax = gs.subplots(sharex=True, sharey=False)
+    xformatter = mdates.DateFormatter('%H:%M')
+    plt.gcf().axes[0].xaxis.set_major_formatter(xformatter)
+    loc = ticker.MultipleLocator(base=1/12) # this locator puts ticks at regular intervals
+    plt.gcf().axes[0].xaxis.set_major_locator(loc)
     for i in range(3):
         ax[i].plot(timeAxis, timeResults[i][1:], label=timeResults[i][0])
-        ax[i].set(ylabel='Voltage [V]', xticks=timeAxisTicks)
+        ax[i].set(ylabel='Voltage [V]')
         ax[i].legend(loc="upper right")
         ax[i].margins(x=0)
         ax[i].axhline(2.95, color='grey', ls='--')
@@ -269,7 +278,7 @@ def plotGraphs(barLoc, energyLoc, timeLoc, timeResults, barResults, energyBar, m
             ax[i].axhline(params['stop'], color='orange', ls='--')
         ax[i].axhline(1.7, color='red', ls='--')
     ax[3].plot(timeAxis, timeResults[3][1:], label=timeResults[3][0], color=('#ffae49' if params['season'] =='summer' else '#44a5c2' if params['season'] =='autumn' else '#024b7a'))
-    ax[3].set(xlabel='Time of day', ylabel='Solar irradiance [W/m$^2$]', xticks=timeAxisTicks, ylim=[-10,1300])
+    ax[3].set(xlabel='Time of day', ylabel='Solar irradiance [W/m$^2$]', ylim=[-10,1300])
     ax[3].legend(loc="upper right")
     ax[3].margins(x=0)
     

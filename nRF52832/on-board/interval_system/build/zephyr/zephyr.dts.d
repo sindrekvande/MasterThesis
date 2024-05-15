@@ -20,4 +20,4 @@ empty_file.o: C:/ncs/v2.5.2/zephyr/misc/empty_file.c \
  C:/ncs/v2.5.2/zephyr/dts/arm/nordic/override.dtsi \
  C:/ncs/v2.5.2/zephyr/boards/arm/nrf52dk_nrf52832/nrf52dk_nrf52832-pinctrl.dtsi \
  C:/ncs/v2.5.2/zephyr/include/zephyr/dt-bindings/input/input-event-codes.h \
- C:/Users/kriss/Desktop/NTNU/MasterThesis/nRF52832/on-chip/interval_system/nrf52dk_nrf52832.overlay
+ C:/Users/kriss/Desktop/NTNU/MasterThesis/nRF52832/on-board/interval_system/nrf52dk_nrf52832.overlay

@@ -39,6 +39,6 @@ endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for the subdirectory.
-  include("C:/Users/kriss/Desktop/NTNU/MasterThesis/nRF52832/on-chip/interval_system/build/modules/mcuboot/boot/bootutil/zephyr/cmake_install.cmake")
+  include("C:/Users/kriss/Desktop/NTNU/MasterThesis/nRF52832/on-board/interval_system/build/modules/mcuboot/boot/bootutil/zephyr/cmake_install.cmake")
 endif()
 

@@ -10,8 +10,8 @@
 
 #define NUMBER_OF_CHANNELS 1
 
-#define NUM_SAMPLES 30
-#define SAMPLE_SIZE 30
+#define NUM_SAMPLES 10
+#define SAMPLE_SIZE 10
 
 typedef enum {
     MEASURE,
