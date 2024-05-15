@@ -8,9 +8,10 @@ import time
 from scipy.signal import savgol_filter
 
 
-resultFile = 'emulationResults\Test_lpcomp_156_2_2.7_200mF.tsv'
+#resultFile = 'emulationResults\Test_adc_240_2_2.7_200.tsv'
+resultFile = 'emulationResults\Test_interval_240_2_2.7_200.tsv'
 
-VoltageDF = pd.read_csv(resultFile, sep='\t', usecols = ['CSA_STORAGE_IN_+'],  dtype = np.float32)
+VoltageDF = pd.read_csv(resultFile, sep='\t', usecols = ['STORAGE_OUT'],  dtype = np.float32)
 irrDF = pd.read_csv(resultFile, sep='\t', usecols = ['irrValue'],  dtype = np.float32)
 currDF = pd.read_csv(resultFile, sep='\t', usecols = ['CSA_STORAGE_IN'],  dtype = np.float32)
 enDF = pd.read_csv(resultFile, sep='\t', usecols = ['DCDC_OUT_BUF'],  dtype = np.float32)
@@ -71,21 +72,21 @@ for _, b in dcdcbufDF.itertuples():
     dcdcbuf.append(b)
 
 
-iterator = [[irr[i],curr[i]*voltage[i]] for i in range(36000, len(irr), 1)]
+#iterator = [[irr[i],curr[i]*voltage[i]] for i in range(36000, len(irr), 1)]
 inEnergy = [curr[i]*voltage[i] * timeL[i] for i in range(len(irr))]
-timeS = np.array(timeS[36000:]) - timedelta(hours=17, minutes=37) #20:55 to 03:18, 09:15 to 06:51
+timeS = np.array(timeS) - timedelta(hours=1, minutes=26) #20:55 to 03:18, 09:15 to 06:51
 
 #for e in range(len(timeS)):
 #    timeS[e] = timeS[e].strftime("%H%M%S")
 #    timeS[e] = datetime.strptime(timeS[e], "%H%M%S")
 
 #x = np.array([((i/10000 * 0.93 * 3/1000)/y) for i, y in iterator])
-x = np.array([y for _, y in iterator])
-irr = np.array([(i/10000 * 0.93 * 3/1000) for i, _ in iterator])
+#x = np.array([y for _, y in iterator])
+#irr = np.array([(i/10000 * 0.93 * 3/1000) for i, _ in iterator])
 
-xx = savgol_filter(x, 1001, 2)
+#xx = savgol_filter(x, 1001, 2)
 
-dif = irr / xx
+#dif = irr / xx
 
 
 dcdcenergy = [dcdccsa[i] * dcdcbuf[i] * timeL[i] for i in range(len(dcdccsa))]
@@ -93,7 +94,7 @@ print(np.sum(dcdcenergy))
 print(np.sum(inEnergy))
 #print(np.mean(x))
 plt.figure(figsize=(8,3))
-#plt.plot(timeS, voltage, label='Measured')
+plt.plot(timeS, voltage, label='Measured')
 #plt.plot(voltageExp, label='Expected')
 #plt.plot(irr)
 #plt.plot(timeS, dcdccurr)
@@ -101,11 +102,11 @@ plt.figure(figsize=(8,3))
 #plt.plot(x)
 #plt.axhline(np.mean(x), color='r')
 #print(np.mean(dif))
-plt.plot(timeS, x, label='Unfiltered')
-plt.plot(timeS, xx, label='Filtered')
-plt.plot(timeS, irr, label='Expected', color='r')
-#plt.ylim(top=2.8)
-plt.ylabel('Power [W]')
+#plt.plot(timeS, x, label='Unfiltered')
+#plt.plot(timeS, xx, label='Filtered')
+#plt.plot(timeS, irr, label='Expected', color='r')
+plt.ylim(-0.3, 3.3)
+plt.ylabel('Voltage [V]')
 plt.xlabel('Time of day')
 xformatter = mdates.DateFormatter('%H:%M')
 plt.gcf().axes[0].xaxis.set_major_formatter(xformatter)

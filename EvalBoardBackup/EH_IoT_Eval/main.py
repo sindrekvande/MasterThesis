@@ -26,7 +26,8 @@ env_dataset_done = Event()
 shared_V_th = Value('d', 0.0)
 shared_V_hyst = Value('d', 0.0)
 Dynamic_Banks = Value('i',0)
-performance_log = Array('i', [0, 0, 0, 0]) # Checkpoint, Recover, Sampling, Communication
+performance_log = Array('i', [0, 0, 0, 0, 0]) # Checkpoint, Recover, Sampling, Communication
+bt_recieved = Value('i', 0)
 
 
 Peri()
@@ -49,8 +50,13 @@ def main():
     #dataset = "Test_700W-300W_Mix_Long.tsv"
     #dataset = "Test_200W-700W-changes.tsv"
     #dataset = "summer7low.tsv"
+    #dataset = "summer7low_2V6.tsv"
     #dataset = "summer10high.tsv"
-    dataset = "summer2smooth.tsv"
+    #dataset = "summer2smooth.tsv"
+    #dataset = "summer2smooth_light.tsv"
+    #dataset = "summer2smooth_short.tsv"
+    ##dataset = "summer2smooth_26V.tsv"
+    dataset = "summer2smooth_2V4_147mF.tsv"
     #dataset = "winter11low.tsv"
     #dataset = "winter20high.tsv"
     #dataset = "winter3smooth.tsv"
@@ -82,7 +88,7 @@ def main():
 
     #Exp_Runtime2(adc_instance, adc_channels, led_instance, system_states_instance, sys_states, dataset, data_log)
 
-    Exp_Runtime3(adc_instance, adc_channels, led_instance, system_states_instance, emulator_instance, bluetooth_instance, sys_states, dataset, data_log, performance_log)
+    Exp_Runtime3(adc_instance, adc_channels, led_instance, system_states_instance, emulator_instance, bluetooth_instance, sys_states, dataset, data_log)
 
     #Exp_LEDCalib(adc_instance, adc_channels, led_instance, sys_states, dataset, data_log)
 
@@ -372,18 +378,18 @@ def Exp_Runtime2(adc_instance, adc_channels, led_instance, system_states_instanc
 
 
 # Read and "play" irradiance trace, emulate load, measure time for total DCDC=On periods. Requires manual drain!
-def Exp_Runtime3(adc_instance, adc_channels, led_instance, system_states_instance, emulator_instance, bluetooth_instance, sys_states, dataset, data_log, performance_log):
+def Exp_Runtime3(adc_instance, adc_channels, led_instance, system_states_instance, emulator_instance, bluetooth_instance, sys_states, dataset, data_log):
         
     print("DRAIN ENERGY STORAGE MANUALLY!")
     time.sleep(5)
 
-    currentDatetime = datetime.now().strftime("%Y-%m-%d_%H.%M")
+    currentDatetime = datetime.now().strftime("%Y-%m-%d_%H-%M")
     strCurrentDatetime = str(currentDatetime)
 
-    filename_time_logger = socket.gethostname()+ "_Performance_Log_" + strCurrentDatetime + ".csv"
+    filename_time_logger = socket.gethostname()+ "_Performance_Log_" + strCurrentDatetime + ".tsv"
 
     # Create an empty DataFrame with one row and column names
-    df = pd.DataFrame(columns=['Timestamp', 'Checkpointed', 'Recovered', 'Sampling count', 'Communication count', 'Idle time'])
+    df = pd.DataFrame(columns=['Timestamp', 'Checkpoint count', 'Recover count', 'Sampling count', 'Communication count', 'Connection Errors'])
     df.to_csv(pm.outputFilePath + filename_time_logger, index=False, sep="\t")  # Write the column names to the CSV file
 
     shared_V_th.value = 2.7
@@ -394,7 +400,7 @@ def Exp_Runtime3(adc_instance, adc_channels, led_instance, system_states_instanc
     On_time = 0     # Measured time of DCDC converter == on
 
     # OPEN NEW FILE
-    filename = f"Trace_{socket.gethostname()}_Dyn_{Dynamic_Banks.value}_File_{dataset}_{strCurrentDatetime}.csv"  # Create a unique filename
+    filename = f"Trace_{socket.gethostname()}_File_{dataset[:-4]}_{strCurrentDatetime}.tsv"  # Create a unique filename
     # filename = f"output_Bri_{bri}_Bank2_static.csv"  # Create a unique filename
     file_instance = file(dataset, filename)
     file_instance.create_output_file(data_log)  # Create the output file
@@ -416,9 +422,12 @@ def Exp_Runtime3(adc_instance, adc_channels, led_instance, system_states_instanc
         processes.append(p_SoC_Proc)
         p_SoC_Proc.start()
 
-    p_BT_Proc = Process(target=bluetooth_instance.BT_Process, args=(exit_event, performance_log, data_log))
+    p_BT_Proc = Process(target=bluetooth_instance.BT_Process, args=(exit_event, performance_log, data_log, bt_recieved))
     processes.append(p_BT_Proc)
     p_BT_Proc.start()
+
+
+    system_states_instance.DCDC_deactivate()
 
     print("Starting Trace")
 
@@ -435,32 +444,36 @@ def Exp_Runtime3(adc_instance, adc_channels, led_instance, system_states_instanc
     # LED on. Waiting for time to elapse
     while not env_dataset_done.is_set():
         time.sleep(Sleep_stepsize)
-        if sys_states[6] == 1: 
+        if bt_recieved.value: # Update after recieved BT message
             On_time += Sleep_stepsize
             # Update and write performance log
             df.loc[0, 'Timestamp'] = datetime.now().strftime("%Y-%m-%d_%H.%M.%S")
-            df.loc[0, 'Sampling count'] = performance_log[0]
-            df.loc[0, 'Communication count'] = performance_log[1]
-            df.loc[0, 'idle time'] = On_time
+            df.loc[0, 'Checkpoint count'] = performance_log[0]
+            df.loc[0, 'Recover count'] = performance_log[1]
+            df.loc[0, 'Sampling count'] = performance_log[2]
+            df.loc[0, 'Communication count'] = performance_log[3]
+            df.loc[0, 'Connection Errors'] = performance_log[4]
             df.to_csv(pm.outputFilePath + filename_time_logger, mode='a', header=False, index=False,
                 sep="\t")  # Append data without writing column names
+            bt_recieved.value = 0
 
     print("Dataset finished. Waiting for DCDC converter to turn off")
     # Turn off LED
     led_instance.set_brightness(0)
-
+    '''
     while sys_states[6] == 1:
         On_time += Sleep_stepsize
         # Update and write performance log
         df.loc[0, 'Timestamp'] = datetime.now().strftime("%Y-%m-%d_%H.%M.%S")
-        df.loc[0, 'Sampling count'] = performance_log[0]
-        df.loc[0, 'Communication count'] = performance_log[1]
-        df.loc[0, 'idle time'] = On_time
+        df.loc[0, 'Checkpoint count'] = performance_log[0]
+        df.loc[0, 'Recover count'] = performance_log[1]
+        df.loc[0, 'Sampling count'] = performance_log[2]
+        df.loc[0, 'Communication count'] = performance_log[3]
         df.to_csv(pm.outputFilePath + filename_time_logger, mode='a', header=False, index=False,
                 sep="\t")  # Append data without writing column names
         
         time.sleep(Sleep_stepsize)
-
+    '''
 
 
     print("DCDC Converter off. Going to next iteration.")

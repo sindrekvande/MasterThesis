@@ -346,14 +346,15 @@ class Bluetooth:
 
     def __init__(self):
         print("Class Bluetooth Init")
-        self.device_mac_address = 'E0:21:78:85:2A:FB' #Lukas: 'DA:B0:BB:56:98:73', DK: 'E0:21:78:85:2A:FB', Eval: ''
+        self.device_mac_address = 'D8:D4:E7:9D:12:41' #Lukas: 'DA:B0:BB:56:98:73', DK: 'E0:21:78:85:2A:FB', Eval: 'D8:D4:E7:9D:12:41'
         self.service = "e9ea0001-e19b-482d-9293-c7907585fc48"
         self.characteristic = "e9ea0002-e19b-482d-9293-c7907585fc48"
         self.client = BleakClient(self.device_mac_address, disconnected_callback=self.on_disconnect)
         #self.serviceChar = '0x180D'
         self.bytes_received = 0
 
-    def BT_Process(self, exit_event, performance_log, data_log):
+    def BT_Process(self, exit_event, performance_log, data_log, bt_recieved):
+        self.bt_recieved = bt_recieved
         asyncio.run(self.connect_to_device(exit_event, performance_log, data_log))
 
     async def connect_to_device(self, exit_event, performance_log, data_log):
@@ -365,7 +366,7 @@ class Bluetooth:
                     #connect_coro = self.client.connect()
                     try:
                         print("Trying to connect.")
-                        await asyncio.wait_for(self.client.connect(), timeout=10)  # Adjust the timeout value as needed
+                        await asyncio.wait_for(self.client.connect(), timeout=2)  # Adjust the timeout value as needed
                     except asyncio.TimeoutError:
                         print("Connection attempt timed out.")
                         continue  # Retry the connection loop
@@ -376,11 +377,13 @@ class Bluetooth:
                     try:
                         print("Starting Notifications.")
                         # Subscribe to the Heart Rate Service (0x180D) for notifications
-                        self.client.start_notify(self.characteristic, self.notification_handler)
+                        await self.client.start_notify(self.characteristic, self.notification_handler)
                         print("Starting Notifications successfull!")
                     except:
                         print("Starting Notifications failed.")
                         continue
+
+                    #await asyncio.sleep(5)
 
                     await self.client.disconnect()
                     data_log.update({"btConnectedFlag": 0})
@@ -389,18 +392,26 @@ class Bluetooth:
 
             except Exception as e:
                 print(f"Error: {e}")
+                self.client = BleakClient(self.device_mac_address, disconnected_callback=self.on_disconnect)
+                self.performance_log[4] = self.performance_log[4] + 1
 
 
     def notification_handler(self, sender, data):
         # Handle received notifications here
-        print(f"Received notification from {sender}: {data}")
-        #self.bytes_received += len(data)  # Track the number of bytes received
-        #self.bytes_received += 1
-        self.performance_log[0] = self.performance_log[0] + 1
-        print(self.bytes_received)
-        #if self.bytes_received > 1:
-        #    print("FULL!")
+        numbers = []
+        for i in range(0,len(data), 2):
+            #print(data[i:i+2])
+            number = int.from_bytes(data[i:i+2], byteorder='little')
+            numbers.append(number)
+        if numbers[0] == 65535:
+            print('Recieved performance data')
+            self.performance_log[0] = int(numbers[1])    # Checkpoint
+            self.performance_log[1] = int(numbers[2])    # Recover
+            self.performance_log[2] = int(numbers[3])    # Measure/sampling
+            self.performance_log[3] = int(numbers[4])    # Communicate
+            self.bt_recieved.value = 1
+            print(numbers)
 
-    def on_disconnect(self):
+    def on_disconnect(self, client):
         #msg.messages[msg.btConnect] = 0
         print("Disconnected from the device")

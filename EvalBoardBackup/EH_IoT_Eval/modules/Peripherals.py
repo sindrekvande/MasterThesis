@@ -235,8 +235,8 @@ class ADC:
             self.V1_bank_supervisor.above_threshold(ADC1_float_data[2], 0.1, self.system_states_instance.activate_bank,2)
             self.V1_bank_supervisor.above_threshold(ADC1_float_data[2], 0.1, self.system_states_instance.activate_bank,3)
             # Enable/Disable DC/DC converter based on Storage Out voltage
-            self.DCDC_switcher.above_threshold(ADC1_float_data[7], 1.4, self.system_states_instance.DCDC_activate) #1.4 # self.V_th.value - 0.1
-            self.DCDC_switcher.below_threshold(ADC1_float_data[7], 0.7, self.system_states_instance.DCDC_deactivate)
+            self.DCDC_switcher.above_threshold(ADC1_float_data[7], self.V_th.value, self.system_states_instance.DCDC_activate) #1.4 # self.V_th.value - 0.1
+            self.DCDC_switcher.below_threshold(ADC1_float_data[7], self.V_hyst.value, self.system_states_instance.DCDC_deactivate)
             
         # Enable/Disable MPPT based on Storage In voltage
         #self.MPPT_switcher.above_threshold(ADC1_float_data[1], 0.1, self.system_states_instance.MPPT_activate)  # -> Activate for no bypass

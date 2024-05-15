@@ -7,7 +7,7 @@ BTserviceUUID = '0x180D'
 BTinterval = 1.0
 
 MaxLedWatt = 1000 # Max W/m^2 output of LED
-IrradianceScaler = 0.004#0.0009 # Simulated Irradiance = Actual Irradiance x IrrandianceScaler
+IrradianceScaler = 0.003#0.0009 # Simulated Irradiance = Actual Irradiance x IrrandianceScaler
 
 LoggingTimeStep = 0.2 # Time in s between datapoints written to the csv file = time between LED updates
 IrrDatasetTimeStep = 60 # Time in s between samples in Irradiance dataset

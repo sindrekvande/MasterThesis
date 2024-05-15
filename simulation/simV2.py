@@ -82,7 +82,7 @@ def singleSim(
                 'communicate'   : communicatePower*communicateTime,
                 'sleep'         : sleepPower,
                 'deepsleep'     : deepSleepPower,
-                'svspower'      : 0.5 * 10 ** -6 * 3} #2.2 * 0.8 * 10 ** -6}
+                'svspower'      : 20 * 10 ** -6 * 3} #2.2 * 0.8 * 10 ** -6} 0.5
     for sCount, s in enumerate(schemes):
         capacitor = energyStorage(capacitorSize, scale)
         voltage = [s]
