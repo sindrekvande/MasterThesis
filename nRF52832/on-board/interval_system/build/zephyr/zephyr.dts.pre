@@ -962,8 +962,8 @@ arduino_spi: &spi2 {
  };
 };
 # 0 "<command-line>" 2
-# 1 "C:/Users/kriss/Desktop/NTNU/MasterThesis/nRF52832/on-board/interval_system/nrf52dk_nrf52832.overlay" 1
-# 14 "C:/Users/kriss/Desktop/NTNU/MasterThesis/nRF52832/on-board/interval_system/nrf52dk_nrf52832.overlay"
+# 1 "c:/Users/kriss/Desktop/NTNU/MasterThesis/nRF52832/on-board/interval_system/nrf52dk_nrf52832.overlay" 1
+# 14 "c:/Users/kriss/Desktop/NTNU/MasterThesis/nRF52832/on-board/interval_system/nrf52dk_nrf52832.overlay"
 &comp {
     compatible = "nordic,nrf-lpcomp";
     status = "okay";

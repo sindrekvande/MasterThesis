@@ -8,9 +8,11 @@ import time
 from scipy.signal import savgol_filter
 
 
-resultFile = 'emulationResults\Test_interval_240_2_2.7_147_half.tsv'
+resultFile2 = 'emulationResults\Test_adc_240_2_2.7_147_10_10_10.tsv'
+resultFile = 'emulationResults\Test_lpcomp_240_2_2.7_147_10_10_10.tsv'
 
 VoltageDF = pd.read_csv(resultFile, sep='\t', usecols = ['STORAGE_OUT'],  dtype = np.float32)
+Voltage2DF = pd.read_csv(resultFile2, sep='\t', usecols = ['STORAGE_OUT'],  dtype = np.float32)
 irrDF = pd.read_csv(resultFile, sep='\t', usecols = ['irrValue'],  dtype = np.float32)
 currDF = pd.read_csv(resultFile, sep='\t', usecols = ['CSA_STORAGE_IN'],  dtype = np.float32)
 enDF = pd.read_csv(resultFile, sep='\t', usecols = ['DCDC_OUT_BUF'],  dtype = np.float32)
@@ -20,6 +22,7 @@ dcdccsaDF = pd.read_csv(resultFile, sep='\t', usecols = ['CSA_STORAGE_OUT'],  dt
 dcdcbufDF = pd.read_csv(resultFile, sep='\t', usecols = ['STORAGE_OUT'],  dtype = np.float32)
 
 voltage = []
+voltage2 = []
 voltageExp = []
 irr = []
 curr = []
@@ -46,6 +49,9 @@ for i, t in timeDF.itertuples():
 
 for _, v in VoltageDF.itertuples():
     voltage.append(v)
+
+for _, v2 in Voltage2DF.itertuples():
+    voltage2.append(v2)
 
 for i, s in irrDF.itertuples():
     irr.append(s)
@@ -93,7 +99,8 @@ print(np.sum(dcdcenergy))
 print(np.sum(inEnergy))
 #print(np.mean(x))
 plt.figure(figsize=(8,3))
-plt.plot(timeS, voltage, label='Measured')
+plt.plot(timeS, voltage, label='lpcomp')
+plt.plot(timeS, voltage2 + [0] * (len(voltage) - len(voltage2)), label='adc')
 #plt.plot(voltageExp, label='Expected')
 #plt.plot(irr)
 #plt.plot(timeS, dcdccurr)
