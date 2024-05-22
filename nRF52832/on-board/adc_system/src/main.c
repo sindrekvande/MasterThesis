@@ -79,7 +79,7 @@ int main(void) {
                     time++;
                 }
                 communicate_handler();         
-                advertisment_uninit();
+                //advertisment_uninit();
                 next_state = SLEEP;
                 saadc_storage_check();
                 break;
