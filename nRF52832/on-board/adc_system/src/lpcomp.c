@@ -4,6 +4,7 @@
 int start_flag = 0;
 
 void lpcomp_event_handler(nrf_lpcomp_event_t event_type) {
+    printk("Event handler - lpcomp\n");
     if (NRF_LPCOMP->EVENTS_UP == 1) {
         NRF_LPCOMP->EVENTS_UP = 0;
         start_flag = 1;
@@ -15,7 +16,7 @@ void lpcomp_event_handler(nrf_lpcomp_event_t event_type) {
 }
 
 void lpcomp_wakeup_init() {   
-    printf("#### LPCOMP WAKEUP INIT ####\n");
+    printk("Wake up initialize - lpcomp\n");
     
     nrfx_err_t err_code;
 
@@ -28,14 +29,14 @@ void lpcomp_wakeup_init() {
 
     err_code = nrfx_lpcomp_init(&config, NULL);
     if (err_code != NRFX_SUCCESS){
-        printf("Error (0x%X)\n", err_code); 
+        printk("Error (0x%X)\n", err_code); 
     }
 
     nrfx_lpcomp_enable();
 }
 
 void lpcomp_start_init() {   
-    printf("#### LPCOMP START INIT ####\n");
+    printk("Start initialize - lpcomp\n");
     
     nrfx_err_t err_code;
 
@@ -46,7 +47,7 @@ void lpcomp_start_init() {
 
     err_code = nrfx_lpcomp_init(&config, NULL);
     if (err_code != NRFX_SUCCESS){
-        printf("Error (0x%X)\n", err_code); 
+        printk("Error (0x%X)\n", err_code); 
     }
 
     nrfx_lpcomp_enable();

@@ -13,16 +13,14 @@ nrfx_saadc_channel_t channels[NUMBER_OF_CHANNELS] =
     NRFX_SAADC_DEFAULT_CHANNEL_SE(NRF_SAADC_INPUT_AIN0, 0)
 };
  
-void handle_error(nrfx_err_t error_code)
-{
+void handle_error(nrfx_err_t error_code) {
     if (error_code!= NRFX_SUCCESS)
     {
         printf("Error (0x%X)\n", error_code); 
     }
 }
 
-void saadc_init(void)
-{
+void saadc_init(void) {
     nrfx_err_t err_code;
 
     err_code = nrfx_saadc_init(NRFX_SAADC_DEFAULT_CONFIG_IRQ_PRIORITY);

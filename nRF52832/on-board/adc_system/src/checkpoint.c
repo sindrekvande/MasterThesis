@@ -4,8 +4,10 @@
 const struct device *flash_dev = PARTITION_DEVICE;
 uint32_t checkpoint_data[CHECKPOINT_WORDS] = {0};
 uint32_t first_boot_flag;
+uint32_t reboot_flag;
 
 bool check_first_boot() {
+    printk("Check first boot\n");
     if (flash_read(flash_dev, FIRST_BOOT_FLAG_ADDR, &first_boot_flag, sizeof(first_boot_flag)) != 0) {
         printk("Flash read failed at first boot check.\n");
         return false;
@@ -18,7 +20,38 @@ bool check_first_boot() {
     return false;
 }
 
+bool check_reboot() {
+    if (flash_read(flash_dev, REBOOT_FLAG_ADDR, &reboot_flag, sizeof(reboot_flag)) != 0) {
+        printk("Flash read failed at reboot check.\n");
+        return false;
+    }
+    if (reboot_flag == FIRST_BOOT_FLAG_VALUE) {
+        return false;
+    } else {
+        return true;
+    }
+    return false;
+}
+
+bool set_reboot_flag() {
+    uint32_t reboot_flag_value = 0xA5A5A5A5;
+    if (reboot_flag != REBOOT_FLAG_VALUE) {
+        if (flash_erase(flash_dev, REBOOT_FLAG_ADDR, FLASH_PAGE_SIZE) != 0) {
+            printk("Flash erase failed during reboot flag set.\n");
+            return false;
+        }
+        if (flash_write(flash_dev, REBOOT_FLAG_ADDR, &reboot_flag_value, sizeof(REBOOT_FLAG_VALUE)) != 0) {
+            printk("Flash write failed during reboot flag set.\n");
+            return false;
+        }
+        printk("Reboot upcoming, flag set.\n");
+        return true;
+    }
+    return false;
+}
+
 bool set_first_boot_flag() {
+    printk("Set first boot flag\n");
     uint32_t first_boot_flag_value = 0xA5A5A5A5;
     if (first_boot_flag != FIRST_BOOT_FLAG_VALUE) {
         if (flash_erase(flash_dev, FIRST_BOOT_FLAG_ADDR, FLASH_PAGE_SIZE) != 0) {
@@ -36,19 +69,19 @@ bool set_first_boot_flag() {
 }
 
 int checkpoint_create() {
-    printk("#### CREATING CHECKPOINT ###\n");
+    printk("Create checkpoint\n");
     checkpoint_pd += 1; // SIMPLIFIED SOLUTION
     get_program_state(checkpoint_data);
 
     uint32_t offset = PARTITION_OFFSET;
     if (flash_erase(flash_dev, offset, FLASH_PAGE_SIZE) != 0) {
-        printk("Flash erase failed at offset 0x%X\n", offset);
+        //printk("Flash erase failed at offset 0x%X\n", offset);
         return -1;
     }
 
     for (uint32_t i = 0; i < CHECKPOINT_WORDS; i++) {
 		if (flash_write(flash_dev, offset + (i * sizeof(uint32_t)), &checkpoint_data[i], sizeof(checkpoint_data[i])) != 0) {
-			printk("Flash write failed at offset 0x%08X\n", offset + (i * sizeof(uint32_t)));
+			//printk("Flash write failed at offset 0x%08X\n", offset + (i * sizeof(uint32_t)));
 			return -1;
 		}
     }
@@ -57,12 +90,12 @@ int checkpoint_create() {
 }
 
 int checkpoint_recover() {
-    printk("#### RECOVERING CHECKPOINT ####\n");
+    printk("Recover checkpoint\n");
     uint32_t offset = PARTITION_OFFSET;
 
     for (uint32_t i = 0; i < CHECKPOINT_WORDS; i++) {
 		if (flash_read(flash_dev, offset + (i * sizeof(uint32_t)), &checkpoint_data[i], sizeof(checkpoint_data[i])) != 0) {
-			printk("Flash read failed at offset 0x%08X\n", offset + (i * sizeof(uint32_t)));
+			//printk("Flash read failed at offset 0x%08X\n", offset + (i * sizeof(uint32_t)));
 			return -1;
 		}
     }
@@ -72,7 +105,7 @@ int checkpoint_recover() {
 }
 
 void get_program_state(uint32_t * buf) { // Number of stored values needs to match CHECKPOINT_WORDS
-    printk("#### GET PROGRAM STATE ####\n");
+    //printk("#### GET PROGRAM STATE ####\n");
 
     buf[0] = next_state; 
     buf[1] = current_sample;
@@ -112,7 +145,7 @@ void get_program_state(uint32_t * buf) { // Number of stored values needs to mat
 }
 
 void set_program_state(uint32_t * buf) {
-    printk("#### SET PROGRAM STATE ####\n");
+    //printk("#### SET PROGRAM STATE ####\n");
 
     next_state = buf[0]; 
     current_sample = buf[1];
@@ -156,18 +189,18 @@ void set_program_state(uint32_t * buf) {
 }
 
 int save_ram_to_flash() {
-    printk("#### SAVE RAM TO FLASH ####\n");
+    //printk("#### SAVE RAM TO FLASH ####\n");
     uint32_t offset = PARTITION_OFFSET + CHECKPOINT_WORDS * sizeof(uint32_t); 
 
     for (uint32_t *ram_ptr = (uint32_t *)RAM_START; ram_ptr < (uint32_t *)RAM_END; ram_ptr++) {
         if (offset % FLASH_PAGE_SIZE == 0) {
             if (flash_erase(flash_dev, offset, FLASH_PAGE_SIZE) != 0) {
-                printk("Flash erase failed at offset 0x%08X\n", offset);
+                //printk("Flash erase failed at offset 0x%08X\n", offset);
                 return -1;
             }
         }
         if (flash_write(flash_dev, offset, ram_ptr, sizeof(uint32_t)) != 0) { 
-            printk("Flash write failed at offset 0x%08X\n", offset);
+            //printk("Flash write failed at offset 0x%08X\n", offset);
             return -1;
         }
         offset += sizeof(uint32_t);
@@ -177,14 +210,14 @@ int save_ram_to_flash() {
 }
 
 int retrieve_ram_from_flash() {
-    printk("#### RETRIVE RAM FROM FLASH ####\n");
+    //printk("#### RETRIVE RAM FROM FLASH ####\n");
     uint32_t offset = PARTITION_OFFSET + (CHECKPOINT_WORDS * sizeof(uint32_t)); 
 
     for (uint32_t *ram_ptr = (uint32_t *)RAM_START; ram_ptr < (uint32_t *)RAM_END; ram_ptr++) {
         uint32_t data;
 
         if (flash_read(flash_dev, offset, &data, sizeof(uint32_t)) != 0) {
-            printk("Flash read failed at offset 0x%08X\n", offset);
+            //printk("Flash read failed at offset 0x%08X\n", offset);
             return -1;
         }
         *ram_ptr = data;

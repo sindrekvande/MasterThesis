@@ -1,6 +1,6 @@
 #include "remote.h"
 
-static K_SEM_DEFINE(bt_init_ok, 0, 1);
+//static K_SEM_DEFINE(bt_init_ok, 0, 1);
 
 #define DEVICE_NAME CONFIG_BT_DEVICE_NAME
 #define DEVICE_NAME_LEN (sizeof(DEVICE_NAME)-1)
@@ -46,7 +46,7 @@ void bt_ready(int err) {
     if (err) {
         printf("Bluetooth initialization failed with error %d\n", err);
     } 
-    k_sem_give(&bt_init_ok);
+    //k_sem_give(&bt_init_ok);
 }
 
 void on_sent(struct bt_conn *conn, void *user_data) {
@@ -80,7 +80,7 @@ int bluetooth_init(struct bt_conn_cb *bt_cb, struct bt_remote_service_cb *remote
         return err;
     }
 
-    k_sem_take(&bt_init_ok, K_FOREVER);
+    //k_sem_take(&bt_init_ok, K_FOREVER);
 
     return err;
 }
@@ -89,9 +89,9 @@ int advertisment_init(void) {
     printf("INIT ADVERTISMENT\n");
 
     const struct bt_le_adv_param adv_param = {
-        .options = BT_LE_ADV_OPT_CONNECTABLE,
-        .interval_min = 0x0020, //BT_GAP_ADV_FAST_INT_MIN_1,
-        .interval_max = 0x0070,
+        .options = BT_LE_ADV_OPT_CONNECTABLE | BT_LE_ADV_OPT_ONE_TIME,
+        .interval_min = BT_GAP_ADV_FAST_INT_MAX_2,
+        .interval_max = 0x0500, 
     };
 
     int err = bt_le_adv_start(&adv_param, ad, ARRAY_SIZE(ad), sd, ARRAY_SIZE(sd));

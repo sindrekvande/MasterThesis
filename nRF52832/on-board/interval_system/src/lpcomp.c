@@ -15,7 +15,7 @@ void lpcomp_event_handler(nrf_lpcomp_event_t event_type) {
 }
 
 void lpcomp_start_init(void) {   
-    printk("#### LPCOMP WAKE UP INIT ####\n");
+    //printk("#### LPCOMP WAKE UP INIT ####\n");
     
     nrfx_err_t err_code;
 

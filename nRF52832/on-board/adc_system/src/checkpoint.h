@@ -23,10 +23,14 @@
 #define RAM_END     0x20000010
 
 #define FIRST_BOOT_FLAG_ADDR 0x42000
+#define REBOOT_FLAG_ADDR 0x41000
 #define FIRST_BOOT_FLAG_VALUE 0xA5A5A5A5
+#define REBOOT_FLAG_VALUE 0xA5A5A5A5
 
 bool check_first_boot();
 bool set_first_boot_flag();
+bool check_reboot();
+bool set_reboot_flag();
 
 /**
  * @brief Creates checkpoint for current tasks.

@@ -4,8 +4,9 @@
 #include "checkpoint.h"
 #include "saadc.h"
 #include "bt.h"
+#include "nrfx_gpiote.h"
 
-//#define GPIO_PIN 15
+#define GPIO_PIN 15
 
 const struct device *dev = DEVICE_DT_GET(DT_CHOSEN(zephyr_console));
 
@@ -32,17 +33,19 @@ uint16_t current_sample = 0;
 
 int main(void) {
 //---------------------- GPIO -----------------------//
-//    nrfx_err_t err_code = nrfx_gpiote_init(3);
-//    if (err_code != NRFX_SUCCESS){
-//        printf("Error (0x%X)\n", err_code); 
-//    }
-//
-//    nrfx_gpiote_output_config_t out_config = NRFX_GPIOTE_DEFAULT_OUTPUT_CONFIG;
-//    
-//    err_code = nrfx_gpiote_output_configure(GPIO_PIN, &out_config, NULL);
-//    if (err_code != NRFX_SUCCESS){
-//        printf("Error (0x%X)\n", err_code); 
-//    }
+    nrfx_err_t err_code = nrfx_gpiote_init(3);
+    if (err_code != NRFX_SUCCESS){
+        printf("Error (0x%X)\n", err_code); 
+    }
+
+    nrfx_gpiote_output_config_t out_config = NRFX_GPIOTE_DEFAULT_OUTPUT_CONFIG;
+    
+    err_code = nrfx_gpiote_output_configure(GPIO_PIN, &out_config, NULL);
+    if (err_code != NRFX_SUCCESS){
+        printf("Error (0x%X)\n", err_code); 
+    }
+
+    nrfx_gpiote_out_set(GPIO_PIN);
 //---------------------------------------------------//
 
     int err;
@@ -66,6 +69,9 @@ int main(void) {
                     next_state = SLEEP;
                     current_state = next_state;
                 }
+                if(threshold_flag){
+                    checkpoint_create();
+                }
                 break;
             
             case COMMUNICATE:
@@ -76,7 +82,10 @@ int main(void) {
                     time++;
                 }
                 communicate_handler();
-                advertisment_uninit();
+                //advertisment_uninit();
+                if(threshold_flag){
+                    checkpoint_create();
+                }
                 next_state = SLEEP;
                 current_state = next_state;
                 break;
@@ -84,13 +93,14 @@ int main(void) {
             case RECOVER:
                 if (!check_first_boot()) {
                     checkpoint_recover();
-                } else {
-                    lpcomp_start_init();
-                    while(!start_flag){
-                        k_sleep(K_MSEC(1));
-                    }
-                    nrfx_lpcomp_uninit();
-                }
+                } //else {
+                //    lpcomp_start_init();
+                //    while(!start_flag){
+                //        k_sleep(K_MSEC(1));
+                //    }
+                //    nrfx_lpcomp_uninit();
+                //}
+                threshold_flag = 0;
                 lpcomp_idle_init();
                 current_state = next_state;
                 break;

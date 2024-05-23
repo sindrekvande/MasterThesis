@@ -37,7 +37,7 @@ void saadc_init(void) {
 }
 
 void saadc_measure() {
-    printk("START MEASURING\n");
+    //printk("START MEASURING\n");
     nrfx_err_t err_code;
 
     saadc_init();
@@ -53,7 +53,7 @@ void saadc_measure() {
 
         //printf("Raw value: %d\n", communicate_samples[(current_sample*SAMPLE_SIZE)+i]);     
     }
-    printf("Current sample: %d\n", current_sample);
+    //printf("Current sample: %d\n", current_sample);
     current_sample += 1;
     measure_pd += 1;
 

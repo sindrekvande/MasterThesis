@@ -83,7 +83,7 @@ int main(void) {
                     time++;
                 }
                 communicate_handler();
-                advertisment_uninit();
+                //advertisment_uninit();
                 checkpoint_create();
                 next_state = SLEEP;
                 current_state = next_state;
@@ -92,28 +92,28 @@ int main(void) {
             case RECOVER:
                 if (!check_first_boot()) {
                     checkpoint_recover();
-                } else {
-                    lpcomp_start_init();
-                    while(!start_flag){
-                        k_sleep(K_MSEC(1));
-                    }
-                    nrfx_lpcomp_uninit();
-                }
+                } //else {
+                    //lpcomp_start_init();
+                    //while(!start_flag){
+                    //    k_sleep(K_MSEC(1));
+                    //}
+                    //nrfx_lpcomp_uninit();
+                //}
                 current_state = next_state;
                 break;
 
             case SLEEP:
-                printk("SLEEP\n");
+                //printk("SLEEP\n");
                 err = pm_device_action_run(dev, PM_DEVICE_ACTION_SUSPEND);
                 if (err) {
-                    printk("pm_device_action_run() failed (%d)\n", err);
+                    printf("pm_device_action_run() failed (%d)\n", err);
                 }
 
-                k_sleep(K_SECONDS(10));
+                k_sleep(K_SECONDS(5));
 
                 err = pm_device_action_run(dev, PM_DEVICE_ACTION_RESUME);
                 if (err) {
-                    printk("pm_device_action_run() failed (%d)\n", err);
+                    printf("pm_device_action_run() failed (%d)\n", err);
                 }
 
                 next_state = MEASURE;

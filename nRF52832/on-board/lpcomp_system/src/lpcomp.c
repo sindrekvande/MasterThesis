@@ -3,26 +3,29 @@
 #include "checkpoint.h"
 #include <zephyr/sys/poweroff.h>
 
-int start_flag = 0;
+//int start_flag = 0;
+int threshold_flag = 0;
 
 void lpcomp_event_handler(nrf_lpcomp_event_t event_type) {
     pm_device_action_run(dev, PM_DEVICE_ACTION_RESUME);
     if (NRF_LPCOMP->EVENTS_DOWN == 1) {
         printk("DEEP SLEEP\n");
-        nrfx_lpcomp_uninit();
-        lpcomp_wakeup_init();
+        //nrfx_lpcomp_uninit();
+        //lpcomp_wakeup_init();
         checkpoint_create();
         set_first_boot_flag();
-        sys_poweroff();
+        threshold_flag = 1;
+        //sys_poweroff();
         NRF_LPCOMP->EVENTS_DOWN = 0;
-    } else if (NRF_LPCOMP->EVENTS_UP == 1){
-        NRF_LPCOMP->EVENTS_UP = 0;
-        start_flag = 1;
-    }
+    } //else if (NRF_LPCOMP->EVENTS_UP == 1){
+        //NRF_LPCOMP->EVENTS_UP = 0;
+        //start_flag = 1;
+    //}
 
     // Clear unused interrupt events in case
     NRF_LPCOMP->EVENTS_CROSS = 0;
     NRF_LPCOMP->EVENTS_READY = 0;
+    NRF_LPCOMP->EVENTS_UP = 0;
 }
 
 void lpcomp_wakeup_init(void) {   
