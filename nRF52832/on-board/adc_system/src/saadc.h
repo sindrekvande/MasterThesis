@@ -31,7 +31,6 @@ extern uint16_t recover_pd;
 extern uint16_t measure_pd;
 extern uint16_t communicate_pd;
 extern bool notif_flag;
-extern int threshold_flag;
 
 void handle_error(nrfx_err_t error_code);
 
