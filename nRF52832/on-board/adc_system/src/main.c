@@ -58,7 +58,7 @@ int main(void) {
         printk("Couldn't initialize Bluetooth. err: %d\n", err);
     }
 
-    //nrfx_lpcomp_uninit();
+    nrfx_lpcomp_uninit();
 
     while (1) {
         switch (current_state) {
