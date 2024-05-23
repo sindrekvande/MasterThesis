@@ -6,7 +6,6 @@ uint16_t recover_pd = 0;
 uint16_t measure_pd = 0;
 uint16_t communicate_pd = 0;
 bool notif_flag = 0;
-int threshold_flag = 0;
 
 nrf_saadc_value_t raw_samples[NUMBER_OF_CHANNELS];
 nrfx_saadc_channel_t channels[NUMBER_OF_CHANNELS] = {
