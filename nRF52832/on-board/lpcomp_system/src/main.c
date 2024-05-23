@@ -112,7 +112,7 @@ int main(void) {
                     printk("pm_device_action_run(suspend) failed (%d)\n", err);
                 }
 
-                k_sleep(K_SECONDS(10));
+                k_sleep(K_SECONDS(5));
 
                 err = pm_device_action_run(dev, PM_DEVICE_ACTION_RESUME);
                 if (err) {

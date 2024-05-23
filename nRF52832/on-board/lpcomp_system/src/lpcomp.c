@@ -10,8 +10,8 @@ void lpcomp_event_handler(nrf_lpcomp_event_t event_type) {
     pm_device_action_run(dev, PM_DEVICE_ACTION_RESUME);
     if (NRF_LPCOMP->EVENTS_DOWN == 1) {
         printk("DEEP SLEEP\n");
-        //nrfx_lpcomp_uninit();
-        //lpcomp_wakeup_init();
+        nrfx_lpcomp_uninit();
+        lpcomp_threshold_init();
         checkpoint_create();
         set_first_boot_flag();
         threshold_flag = 1;
@@ -26,6 +26,19 @@ void lpcomp_event_handler(nrf_lpcomp_event_t event_type) {
     NRF_LPCOMP->EVENTS_CROSS = 0;
     NRF_LPCOMP->EVENTS_READY = 0;
     NRF_LPCOMP->EVENTS_UP = 0;
+}
+
+void lpcomp_threshold_event_handler(nrf_lpcomp_event_t event_type) {
+    if (NRF_LPCOMP->EVENTS_UP == 1) {
+        nrfx_lpcomp_uninit();
+        lpcomp_idle_init();
+        threshold_flag = 0;
+        NRF_LPCOMP->EVENTS_UP = 0;
+    }
+
+    NRF_LPCOMP->EVENTS_CROSS = 0;
+    NRF_LPCOMP->EVENTS_READY = 0;
+    NRF_LPCOMP->EVENTS_DOWN = 0;
 }
 
 void lpcomp_wakeup_init(void) {   
@@ -54,6 +67,23 @@ void lpcomp_idle_init(void) {
 
     nrfx_lpcomp_config_t config = NRFX_LPCOMP_DEFAULT_CONFIG(NRF_LPCOMP_INPUT_1);
     config.config.detection = NRF_LPCOMP_DETECT_DOWN;
+    config.config.reference = NRF_LPCOMP_REF_SUPPLY_9_16; // Threshold (5/8)*3.3 = 2.0625 (2V)
+
+    err_code = nrfx_lpcomp_init(&config, NULL);
+    handle_error(err_code);
+
+    nrfx_lpcomp_enable();
+}
+
+void lpcomp_threshold_init(void) {   
+    printf("#### LPCOMP THRESHOLD INIT ####\n");
+    
+    nrfx_err_t err_code;
+
+    IRQ_DIRECT_CONNECT(COMP_LPCOMP_IRQn, 4, lpcomp_event_handler, 0);
+
+    nrfx_lpcomp_config_t config = NRFX_LPCOMP_DEFAULT_CONFIG(NRF_LPCOMP_INPUT_1);
+    config.config.detection = NRF_LPCOMP_DETECT_UP;
     config.config.reference = NRF_LPCOMP_REF_SUPPLY_9_16; // Threshold (5/8)*3.3 = 2.0625 (2V)
 
     err_code = nrfx_lpcomp_init(&config, NULL);
