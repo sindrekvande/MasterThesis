@@ -126,7 +126,6 @@ void saadc_storage_check() {
 
     if (raw_samples[1] < CHECKPOINT_THRESHOLD) {
         //printk("Current too low, checkpoint.\n");
-        threshold_flag = 1;
         current_state = CHECKPOINT;
     } else if (current_state == MEASURE && raw_samples[1] >= CHECKPOINT_THRESHOLD && current_sample == NUM_SAMPLES) {
         //printk("Measure completed, COMMUNICATE.\n");
