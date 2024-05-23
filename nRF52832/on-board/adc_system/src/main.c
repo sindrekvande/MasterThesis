@@ -65,13 +65,9 @@ int main(void) {
             case MEASURE:
                 printk("--- MEASURE ---\n");
                 saadc_measure();
-                if(threshold_flag) {
-                    checkpoint_create();
-                } else {
-                    nrfx_gpiote_out_set(GPIO_PIN);
-                    saadc_storage_check();
-                    nrfx_gpiote_out_clear(GPIO_PIN);
-                }
+                nrfx_gpiote_out_set(GPIO_PIN);
+                saadc_storage_check();
+                nrfx_gpiote_out_clear(GPIO_PIN);
                 break;
 
             case COMMUNICATE:
@@ -85,13 +81,9 @@ int main(void) {
                 communicate_handler();         
                 //advertisment_uninit();
                 next_state = SLEEP;
-                if(threshold_flag) {
-                    checkpoint_create();
-                } else {
-                    nrfx_gpiote_out_set(GPIO_PIN);
-                    saadc_storage_check();
-                    nrfx_gpiote_out_clear(GPIO_PIN);
-                }
+                nrfx_gpiote_out_set(GPIO_PIN);
+                saadc_storage_check();
+                nrfx_gpiote_out_clear(GPIO_PIN);
                 break;
             
             case CHECKPOINT:
