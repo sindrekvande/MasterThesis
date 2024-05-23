@@ -14,7 +14,7 @@ class energyStorage:
     # E = (Q * V) / 2 = C*V**2 / 2
     # V = sqrt(2*E/C)
     def __init__(self, capacitance, scale):
-        self.maxEnergy = 1/2 * capacitance * 2.95**2
+        self.maxEnergy = 1/2 * capacitance * 3.0**2
         self.voltage = 0
         self.energy = 0
         self.capacitance = capacitance
@@ -249,8 +249,9 @@ def plotGraphs(barLoc, energyLoc, timeLoc, timeResults, barResults, energyBar, m
     #plt.bar(x + 0.25, energyBar[-1], width=0.5)
     plt.xticks(x, energyBar[0])
     plt.ylabel('Energy use [J]')
-    plt.xlim(-1.5, 3.5)
-    plt.legend(loc='best')
+    plt.xlabel('Checkpointing scheme')
+    plt.xlim(-.6, 4.4)
+    plt.legend(loc='upper right')
     plt.savefig(energyLoc, bbox_inches="tight")
     plt.cla()
     plt.close()
@@ -260,7 +261,7 @@ def plotGraphs(barLoc, energyLoc, timeLoc, timeResults, barResults, energyBar, m
     timeAxis = np.linspace(start=startTime.value, stop=endTime.value, num=len(timeResults[0][1:]))
     timeAxis = pd.to_datetime(timeAxis)
     #timeAxisTicks = np.arange(0, 24, step=1)
-    fig = plt.figure(figsize=(10,7))
+    fig = plt.figure(figsize=(8,6))
     gs = fig.add_gridspec(4, hspace=0)
     ax = gs.subplots(sharex=True, sharey=False)
     xformatter = mdates.DateFormatter('%H:%M')
@@ -289,7 +290,7 @@ def plotGraphs(barLoc, energyLoc, timeLoc, timeResults, barResults, energyBar, m
 
 def multiSim():
     headers = ['Season', 'Day', 'Capacitance [mF]', 'SampleNum', 'SampleSize', 'Sleep', 'Start', 'Stop', '', 'Resulting metrics', 'Energy Use', 'Time plot']
-    metrics = ['Checkpointed', 'Recovered', 'Measured', 'Communicated']
+    metrics = ['Checkpointed', 'Recovered', 'Samples', 'Communicated']
     simSetFile = 'simSet9'
     #os.rmdir('simulation/results/'+simSetFile+'Results')
     os.makedirs('simulation/results/'+simSetFile+'Results')

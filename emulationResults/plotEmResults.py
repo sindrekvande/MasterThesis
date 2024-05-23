@@ -8,12 +8,14 @@ import time
 from scipy.signal import savgol_filter
 
 
-resultFile2 = 'emulationResults\Test_adc_240_2_2.7_147_10_10_10.tsv'
-resultFile = 'emulationResults\Test_lpcomp_240_2_2.7_147_10_10_10.tsv'
+#resultFile = 'emulationResults\Test_interval_240_2_2.7_147_10_10_5.tsv'
+resultFile2 = 'emulationResults\Test_lpcomp_240_2_2.7_147_10_10_10.tsv'
+resultFile = 'emulationResults\Test_lpcomp_240_2_2.7_147_10_10_10_cableconn.tsv'
 
 VoltageDF = pd.read_csv(resultFile, sep='\t', usecols = ['STORAGE_OUT'],  dtype = np.float32)
 Voltage2DF = pd.read_csv(resultFile2, sep='\t', usecols = ['STORAGE_OUT'],  dtype = np.float32)
 irrDF = pd.read_csv(resultFile, sep='\t', usecols = ['irrValue'],  dtype = np.float32)
+ledDF = pd.read_csv(resultFile, sep='\t', usecols = ['ledPercent'],  dtype = np.float32)
 currDF = pd.read_csv(resultFile, sep='\t', usecols = ['CSA_STORAGE_IN'],  dtype = np.float32)
 enDF = pd.read_csv(resultFile, sep='\t', usecols = ['DCDC_OUT_BUF'],  dtype = np.float32)
 en1DF = pd.read_csv(resultFile, sep='\t', usecols = ['EXT_AN_IN_1'],  dtype = np.float32)
@@ -25,6 +27,7 @@ voltage = []
 voltage2 = []
 voltageExp = []
 irr = []
+led = []
 curr = []
 en = []
 en1 = []
@@ -36,7 +39,7 @@ timeS = []
 capacitance = 200 * 10 ** (-3)
 #capacitance = 385 * 10 ** (-3)
 energy = 0 #1.93 ** 2 * capacitance / 2
-datetime_str = '%Y-%m-%d %H:%M:%S.%f'
+datetime_str = '%Y-%m-%dT%H:%M:%S.%f'
 
 for i, t in timeDF.itertuples():
     if i == 0:
@@ -50,11 +53,15 @@ for i, t in timeDF.itertuples():
 for _, v in VoltageDF.itertuples():
     voltage.append(v)
 
+for _, l in ledDF.itertuples():
+    led.append(l)
+led = np.array(led)
+
 for _, v2 in Voltage2DF.itertuples():
     voltage2.append(v2)
 
 for i, s in irrDF.itertuples():
-    irr.append(s)
+    irr.append(s/333)
     energy += s/10000 * 0.93 * 3/1000 *timeL[i]
     volt = np.sqrt(2*energy/capacitance)
     if volt > 3.3:
@@ -99,23 +106,25 @@ print(np.sum(dcdcenergy))
 print(np.sum(inEnergy))
 #print(np.mean(x))
 plt.figure(figsize=(8,3))
-plt.plot(timeS, voltage, label='lpcomp')
-plt.plot(timeS, voltage2 + [0] * (len(voltage) - len(voltage2)), label='adc')
+plt.plot(voltage, label='lpcomp')
+#plt.plot(timeS, voltage2 + [0] * (len(voltage) - len(voltage2)), label='adc')
 #plt.plot(voltageExp, label='Expected')
 #plt.plot(irr)
-#plt.plot(timeS, dcdccurr)
-#plt.plot(en)
+plt.plot(dcdcenergy)
+plt.plot(en)
+plt.plot(led*100)
+plt.axhline(0.5, color='grey', ls='--')
 #plt.plot(x)
 #plt.axhline(np.mean(x), color='r')
 #print(np.mean(dif))
 #plt.plot(timeS, x, label='Unfiltered')
 #plt.plot(timeS, xx, label='Filtered')
 #plt.plot(timeS, irr, label='Expected', color='r')
-plt.ylim(-0.3, 3.3)
+plt.ylim(-0.3, 3.4)
 plt.ylabel('Voltage [V]')
 plt.xlabel('Time of day')
-xformatter = mdates.DateFormatter('%H:%M')
-plt.gcf().axes[0].xaxis.set_major_formatter(xformatter)
+#xformatter = mdates.DateFormatter('%H:%M')
+#plt.gcf().axes[0].xaxis.set_major_formatter(xformatter)
 plt.legend(loc='upper right')
 plt.tight_layout()
 #plt.plot(dif)

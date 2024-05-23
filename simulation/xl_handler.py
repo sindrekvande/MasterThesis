@@ -11,7 +11,7 @@ def createExcel(wbName, headers):
     page.freeze_panes = page['a2']
     page.column_dimensions['j'].width = 70
     page.column_dimensions['k'].width = 50
-    page.column_dimensions['l'].width = 80
+    page.column_dimensions['l'].width = 70
     page.column_dimensions['C'].width = 16
     page.column_dimensions['D'].width = 13
     page.column_dimensions['E'].width = 13
