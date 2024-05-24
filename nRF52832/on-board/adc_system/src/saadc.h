@@ -10,7 +10,7 @@
 
 #define NUMBER_OF_CHANNELS 2
 
-#define CHECKPOINT_THRESHOLD 2276 // Raw value (2/3.6)*4096
+#define CHECKPOINT_THRESHOLD 2330 // Raw value (2/3.6)*4096
 #define NUM_SAMPLES 10
 #define SAMPLE_SIZE 10
 

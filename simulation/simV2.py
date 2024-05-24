@@ -8,6 +8,7 @@ import os
 import xl_handler as xl
 import matplotlib.dates as mdates
 import matplotlib.ticker as ticker
+from matplotlib import rc
 
 class energyStorage:
     # C = (ε0 * A) / d
@@ -221,9 +222,10 @@ def singleSim(
     return timeResults, barResults, energyBar
 
 def plotGraphs(barLoc, energyLoc, timeLoc, timeResults, barResults, energyBar, metrics, params):
-    barWidth = 0.2
+    rc('font',**{'family':'serif','serif':['Times New Roman']})
+    barWidth = 0.28
     x = np.arange(len(metrics))
-    fig = plt.figure(figsize=(10,6))
+    fig = plt.figure(figsize=(7,6))
     colors = ['#0089B3', '#00556F', '#00C4FF']
 
     for i in range(3):
@@ -261,7 +263,7 @@ def plotGraphs(barLoc, energyLoc, timeLoc, timeResults, barResults, energyBar, m
     timeAxis = np.linspace(start=startTime.value, stop=endTime.value, num=len(timeResults[0][1:]))
     timeAxis = pd.to_datetime(timeAxis)
     #timeAxisTicks = np.arange(0, 24, step=1)
-    fig = plt.figure(figsize=(8,6))
+    fig = plt.figure(figsize=(8.5,6))
     gs = fig.add_gridspec(4, hspace=0)
     ax = gs.subplots(sharex=True, sharey=False)
     xformatter = mdates.DateFormatter('%H:%M')
@@ -290,7 +292,7 @@ def plotGraphs(barLoc, energyLoc, timeLoc, timeResults, barResults, energyBar, m
 
 def multiSim():
     headers = ['Season', 'Day', 'Capacitance [mF]', 'SampleNum', 'SampleSize', 'Sleep', 'Start', 'Stop', '', 'Resulting metrics', 'Energy Use', 'Time plot']
-    metrics = ['Checkpointed', 'Recovered', 'Samples', 'Communicated']
+    metrics = ['Checkpointed', 'Recovered', 'Sampled', 'Communicated']
     simSetFile = 'simSet9'
     #os.rmdir('simulation/results/'+simSetFile+'Results')
     os.makedirs('simulation/results/'+simSetFile+'Results')
@@ -302,9 +304,9 @@ def multiSim():
     for i, row in simSet.iterrows():
         params = [row['season'], row['day'], row['capacitance'], row['sampleNum'], row['sampleSize'], row['sleep'], row['start'], row['stop']]
         print('Sim\t', str(i+1)+'/'+str(len(simSet))+':', params)
-        timeLoc = 'simulation/results/'+simSetFile+'Results/'+simSetFile+'_time_'+str(row['season'])+str(row['day'])+'_'+str(int(row['capacitance']))+'mF'+'_sampleNum'+str(row['sampleNum'])+'_sampleSize'+str(row['sampleSize'])+'_sleep'+str(row['sleep'])+'_start'+str(row['start'])+'_stop'+str(row['stop'])+'.png'
-        barLoc = 'simulation/results/'+simSetFile+'Results/'+simSetFile+'_bar_'+str(row['season'])+str(row['day'])+'_'+str(int(row['capacitance']))+'mF'+'_sampleNum'+str(row['sampleNum'])+'_sampleSize'+str(row['sampleSize'])+'_sleep'+str(row['sleep'])+'_start'+str(row['start'])+'_stop'+str(row['stop'])+'.png'
-        energyLoc = 'simulation/results/'+simSetFile+'Results/'+simSetFile+'_energy_'+str(row['season'])+str(row['day'])+'_'+str(int(row['capacitance']))+'mF'+'_sampleNum'+str(row['sampleNum'])+'_sampleSize'+str(row['sampleSize'])+'_sleep'+str(row['sleep'])+'_start'+str(row['start'])+'_stop'+str(row['stop'])+'.png'
+        timeLoc = 'simulation/results/'+simSetFile+'Results/'+simSetFile+'_time_'+str(row['season'])+str(row['day'])+'_'+str(int(row['capacitance']))+'mF'+'_sampleNum'+str(row['sampleNum'])+'_sampleSize'+str(row['sampleSize'])+'_sleep'+str(row['sleep'])+'_start'+str(row['start'])[0]+'V'+str(row['start'])[2]+'_stop'+str(row['stop'])[0]+'V'+str(row['stop'])[2]+'.png'
+        barLoc = 'simulation/results/'+simSetFile+'Results/'+simSetFile+'_bar_'+str(row['season'])+str(row['day'])+'_'+str(int(row['capacitance']))+'mF'+'_sampleNum'+str(row['sampleNum'])+'_sampleSize'+str(row['sampleSize'])+'_sleep'+str(row['sleep'])+'_start'+str(row['start'])[0]+'V'+str(row['start'])[2]+'_stop'+str(row['stop'])[0]+'V'+str(row['stop'])[2]+'.png'
+        energyLoc = 'simulation/results/'+simSetFile+'Results/'+simSetFile+'_energy_'+str(row['season'])+str(row['day'])+'_'+str(int(row['capacitance']))+'mF'+'_sampleNum'+str(row['sampleNum'])+'_sampleSize'+str(row['sampleSize'])+'_sleep'+str(row['sleep'])+'_start'+str(row['start'])[0]+'V'+str(row['start'])[2]+'_stop'+str(row['stop'])[0]+'V'+str(row['stop'])[2]+'.png'
         
         timeResults, barResults, energyBar = singleSim(sampleNum       = row['sampleNum'],
                                                         sampleSize      = row['sampleSize'],

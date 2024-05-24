@@ -1,6 +1,7 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
+from matplotlib import rc
 import numpy as np
 from datetime import datetime, timedelta
 import time
@@ -10,7 +11,7 @@ from scipy.signal import savgol_filter
 
 #resultFile = 'emulationResults\Test_interval_240_2_2.7_147_10_10_5.tsv'
 resultFile2 = 'emulationResults\Test_lpcomp_240_2_2.7_147_10_10_10.tsv'
-resultFile = 'emulationResults\Test_lpcomp_240_2_2.7_147_10_10_10_cableconn.tsv'
+resultFile = 'emulationResults\Test9.tsv'
 
 VoltageDF = pd.read_csv(resultFile, sep='\t', usecols = ['STORAGE_OUT'],  dtype = np.float32)
 Voltage2DF = pd.read_csv(resultFile2, sep='\t', usecols = ['STORAGE_OUT'],  dtype = np.float32)
@@ -105,8 +106,9 @@ dcdcenergy = [dcdccsa[i] * dcdcbuf[i] * timeL[i] for i in range(len(dcdccsa))]
 print(np.sum(dcdcenergy))
 print(np.sum(inEnergy))
 #print(np.mean(x))
+rc('font',**{'family':'serif','serif':['Times New Roman']})
 plt.figure(figsize=(8,3))
-plt.plot(voltage, label='lpcomp')
+plt.plot(voltage, label='Measured')
 #plt.plot(timeS, voltage2 + [0] * (len(voltage) - len(voltage2)), label='adc')
 #plt.plot(voltageExp, label='Expected')
 #plt.plot(irr)

@@ -8,10 +8,32 @@ uint16_t measure_pd = 0;
 uint16_t communicate_pd = 0;
 bool notif_flag = 0;
 
+#define NRFX_SAADC_KVANDE_CHANNEL_SE(_pin_p, _index)                  \
+{                                                                      \
+    .channel_config =                                                  \
+    {                                                                  \
+        NRFX_COND_CODE_1(NRF_SAADC_HAS_CH_CONFIG_RES,                  \
+                         (.resistor_p = NRF_SAADC_RESISTOR_DISABLED,   \
+                          .resistor_n = NRF_SAADC_RESISTOR_DISABLED,), \
+                         ())                                           \
+        .gain       = NRF_SAADC_GAIN1_6,                                 \
+        .reference  = NRF_SAADC_REFERENCE_INTERNAL,                    \
+        .acq_time   = NRFX_SAADC_DEFAULT_ACQTIME,                      \
+        NRFX_COND_CODE_1(NRF_SAADC_HAS_CONV_TIME,                      \
+                         (.conv_time = NRFX_SAADC_DEFAULT_CONV_TIME,), \
+                         ())                                           \
+        .mode       = NRF_SAADC_MODE_SINGLE_ENDED,                     \
+        .burst      = NRF_SAADC_BURST_DISABLED,                        \
+    },                                                                 \
+    .pin_p          = (nrf_saadc_input_t)_pin_p,                       \
+    .pin_n          = NRF_SAADC_INPUT_DISABLED,                        \
+    .channel_index  = _index,                                          \
+}
+
 nrf_saadc_value_t raw_samples[NUMBER_OF_CHANNELS];
 nrfx_saadc_channel_t channels[NUMBER_OF_CHANNELS] = {
-    NRFX_SAADC_DEFAULT_CHANNEL_SE(NRF_SAADC_INPUT_AIN0, 0), 
-    NRFX_SAADC_DEFAULT_CHANNEL_SE(NRF_SAADC_INPUT_AIN1, 1) 
+    NRFX_SAADC_KVANDE_CHANNEL_SE(NRF_SAADC_INPUT_AIN0, 0), 
+    NRFX_SAADC_KVANDE_CHANNEL_SE(NRF_SAADC_INPUT_AIN1, 1) 
 };
  
 void handle_error(nrfx_err_t error_code) {
@@ -123,7 +145,7 @@ void saadc_storage_check() {
     // ---------------- //
 
     //printk("Stored current: %d - STATE: %d\n", raw_samples[1], current_state);
-
+    //recover_pd = raw_samples[1];
     if (raw_samples[1] < CHECKPOINT_THRESHOLD) {
         //printk("Current too low, checkpoint.\n");
         if (current_sample == NUM_SAMPLES) {
