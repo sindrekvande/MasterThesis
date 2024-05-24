@@ -17,7 +17,7 @@
 typedef enum {
     MEASURE,
     COMMUNICATE,
-    CHECKPOINT,
+    //CHECKPOINT,
     RECOVER,
     SLEEP,
 } device_state_t;

@@ -1,7 +1,6 @@
 #include <zephyr/kernel.h>
 #include <zephyr/sys/poweroff.h>
 #include "checkpoint.h"
-#include "lpcomp.h"
 #include "saadc.h"
 #include "bt.h"
 #include <zephyr/pm/state.h>
@@ -58,14 +57,13 @@ int main(void) {
         printk("Couldn't initialize Bluetooth. err: %d\n", err);
     }
 
-    nrfx_lpcomp_uninit();
-
     while (1) {
         switch (current_state) {
             case MEASURE:
                 printk("--- MEASURE ---\n");
                 saadc_measure();
                 nrfx_gpiote_out_set(GPIO_PIN);
+                k_sleep(K_MSEC(0.01));
                 saadc_storage_check();
                 nrfx_gpiote_out_clear(GPIO_PIN);
                 break;
@@ -80,23 +78,26 @@ int main(void) {
                 }
                 communicate_handler();         
                 //advertisment_uninit();
-                next_state = SLEEP;
                 nrfx_gpiote_out_set(GPIO_PIN);
+                k_sleep(K_MSEC(0.01));
                 saadc_storage_check();
                 nrfx_gpiote_out_clear(GPIO_PIN);
                 break;
             
-            case CHECKPOINT:
-                printk("--- CHECKPOINT ---\n");
-                checkpoint_create();
-                set_first_boot_flag();
-                //lpcomp_wakeup_init();
-                //sys_poweroff();
-                current_state = SLEEP;
-                break;
+            //case CHECKPOINT:
+            //    printk("--- CHECKPOINT ---\n");
+            //    checkpoint_create();
+            //    set_first_boot_flag();
+            //    //lpcomp_wakeup_init();
+            //    //sys_poweroff();
+            //    current_state = SLEEP;
+            //    break;
             
             case RECOVER:
                 printk("--- RECOVER ---\n");
+                pm_device_action_run(dev, PM_DEVICE_ACTION_RESUME);
+                nrfx_gpiote_out_clear(GPIO_PIN);
+                k_sleep(K_MSEC(0.01));
                 if (!check_first_boot()) {
                     checkpoint_recover();
                 } //else {
@@ -112,7 +113,6 @@ int main(void) {
                     //    }
                     //}
                 //}
-                threshold_flag = 0;
                 current_state = next_state;
                 break;
 

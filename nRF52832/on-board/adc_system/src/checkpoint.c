@@ -4,7 +4,7 @@
 const struct device *flash_dev = PARTITION_DEVICE;
 uint32_t checkpoint_data[CHECKPOINT_WORDS] = {0};
 uint32_t first_boot_flag;
-uint32_t reboot_flag;
+//uint32_t reboot_flag;
 
 bool check_first_boot() {
     printk("Check first boot\n");
@@ -20,35 +20,35 @@ bool check_first_boot() {
     return false;
 }
 
-bool check_reboot() {
-    if (flash_read(flash_dev, REBOOT_FLAG_ADDR, &reboot_flag, sizeof(reboot_flag)) != 0) {
-        printk("Flash read failed at reboot check.\n");
-        return false;
-    }
-    if (reboot_flag == FIRST_BOOT_FLAG_VALUE) {
-        return false;
-    } else {
-        return true;
-    }
-    return false;
-}
+//bool check_reboot() {
+//    if (flash_read(flash_dev, REBOOT_FLAG_ADDR, &reboot_flag, sizeof(reboot_flag)) != 0) {
+//        printk("Flash read failed at reboot check.\n");
+//        return false;
+//    }
+//    if (reboot_flag == FIRST_BOOT_FLAG_VALUE) {
+//        return false;
+//    } else {
+//        return true;
+//    }
+//    return false;
+//}
 
-bool set_reboot_flag() {
-    uint32_t reboot_flag_value = 0xA5A5A5A5;
-    if (reboot_flag != REBOOT_FLAG_VALUE) {
-        if (flash_erase(flash_dev, REBOOT_FLAG_ADDR, FLASH_PAGE_SIZE) != 0) {
-            printk("Flash erase failed during reboot flag set.\n");
-            return false;
-        }
-        if (flash_write(flash_dev, REBOOT_FLAG_ADDR, &reboot_flag_value, sizeof(REBOOT_FLAG_VALUE)) != 0) {
-            printk("Flash write failed during reboot flag set.\n");
-            return false;
-        }
-        printk("Reboot upcoming, flag set.\n");
-        return true;
-    }
-    return false;
-}
+//bool set_reboot_flag() {
+//    uint32_t reboot_flag_value = 0xA5A5A5A5;
+//    if (reboot_flag != REBOOT_FLAG_VALUE) {
+//        if (flash_erase(flash_dev, REBOOT_FLAG_ADDR, FLASH_PAGE_SIZE) != 0) {
+//            printk("Flash erase failed during reboot flag set.\n");
+//            return false;
+//        }
+//        if (flash_write(flash_dev, REBOOT_FLAG_ADDR, &reboot_flag_value, sizeof(REBOOT_FLAG_VALUE)) != 0) {
+//            printk("Flash write failed during reboot flag set.\n");
+//            return false;
+//        }
+//        printk("Reboot upcoming, flag set.\n");
+//        return true;
+//    }
+//    return false;
+//}
 
 bool set_first_boot_flag() {
     printk("Set first boot flag\n");

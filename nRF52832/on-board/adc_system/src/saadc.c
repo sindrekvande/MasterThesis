@@ -1,4 +1,5 @@
 #include "saadc.h"
+#include "checkpoint.h"
 
 uint16_t communicate_samples[NUM_SAMPLES*SAMPLE_SIZE];
 uint16_t checkpoint_pd = 0;
@@ -125,7 +126,18 @@ void saadc_storage_check() {
 
     if (raw_samples[1] < CHECKPOINT_THRESHOLD) {
         //printk("Current too low, checkpoint.\n");
-        current_state = CHECKPOINT;
+        if (current_sample == NUM_SAMPLES) {
+            current_sample = 0;
+            next_state = COMMUNICATE;
+            current_state = COMMUNICATE;
+            checkpoint_create();
+            set_first_boot_flag();
+        } else {
+            next_state = SLEEP;
+            current_state = SLEEP;
+            checkpoint_create();
+            set_first_boot_flag();
+        }
     } else if (current_state == MEASURE && raw_samples[1] >= CHECKPOINT_THRESHOLD && current_sample == NUM_SAMPLES) {
         //printk("Measure completed, COMMUNICATE.\n");
         current_sample = 0;
@@ -137,6 +149,7 @@ void saadc_storage_check() {
         current_state = SLEEP;
     }else if (current_state == COMMUNICATE && raw_samples[1] >= CHECKPOINT_THRESHOLD) {
         //printk("Communicate completed, SLEEP.\n");
+        next_state = SLEEP;
         current_state = SLEEP;
     }
 }

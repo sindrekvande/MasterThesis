@@ -63,14 +63,17 @@ int main(void) {
                 saadc_measure();
                 if (current_sample == NUM_SAMPLES){
                     current_sample = 0;
+                    if(threshold_flag == 1){
+                        checkpoint_create();
+                    }
                     next_state = COMMUNICATE;
                     current_state = next_state;
                 } else {
+                    if(threshold_flag == 1){
+                        checkpoint_create();
+                    }
                     next_state = SLEEP;
                     current_state = next_state;
-                }
-                if(threshold_flag){
-                    checkpoint_create();
                 }
                 break;
             
@@ -83,7 +86,7 @@ int main(void) {
                 }
                 communicate_handler();
                 //advertisment_uninit();
-                if(threshold_flag){
+                if(threshold_flag == 1){
                     checkpoint_create();
                 }
                 next_state = SLEEP;
