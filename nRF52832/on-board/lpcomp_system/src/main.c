@@ -63,17 +63,17 @@ int main(void) {
                 saadc_measure();
                 if (current_sample == NUM_SAMPLES){
                     current_sample = 0;
-                    if(threshold_flag == 1){
-                        checkpoint_create();
-                    }
                     next_state = COMMUNICATE;
                     current_state = next_state;
-                } else {
                     if(threshold_flag == 1){
-                        checkpoint_create();
+                        checkpoint_create_zephyr();
                     }
+                } else {
                     next_state = SLEEP;
                     current_state = next_state;
+                    if(threshold_flag == 1){
+                        checkpoint_create_zephyr();
+                    }
                 }
                 break;
             
@@ -87,7 +87,7 @@ int main(void) {
                 communicate_handler();
                 //advertisment_uninit();
                 if(threshold_flag == 1){
-                    checkpoint_create();
+                    checkpoint_create_zephyr();
                 }
                 next_state = SLEEP;
                 current_state = next_state;
@@ -105,6 +105,7 @@ int main(void) {
                 //}
                 threshold_flag = 0;
                 lpcomp_idle_init();
+                printk("next_state: %d\n", next_state);
                 current_state = next_state;
                 break;
 

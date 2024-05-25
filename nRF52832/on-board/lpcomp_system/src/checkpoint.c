@@ -38,12 +38,32 @@ uint32_t read_from_flash(uint32_t address) {
     return *flash_addr;
 }
 
-int checkpoint_create() {
-    printk("#### CREATING CHECKPOINT ###\n");
+int checkpoint_create_zephyr() {
+    printk("#### CREATING CHECKPOINT (ZEPHYR) ###\n");
     checkpoint_pd += 1; // SIMPLIFIED SOLUTION
     get_program_state(checkpoint_data);
 
     uint32_t offset = PARTITION_OFFSET;
+    if (flash_erase(flash_dev, offset, FLASH_PAGE_SIZE) != 0) {
+        printk("Flash erase failed at offset 0x%X\n", offset);
+        return -1;
+    }
+
+    for (uint32_t i = 0; i < CHECKPOINT_WORDS; i++) {
+		if (flash_write(flash_dev, offset + (i * sizeof(uint32_t)), &checkpoint_data[i], sizeof(checkpoint_data[i])) != 0) {
+			printk("Flash write failed at offset 0x%08X\n", offset + (i * sizeof(uint32_t)));
+			return -1;
+		}
+    }
+    //return save_ram_to_flash(); // FULL SOLUTION
+    return 0; // SIMPLIFIED SOLUTION
+}
+
+int checkpoint_create_nrfx() {
+    printk("#### CREATING CHECKPOINT (NRFX) ###\n");
+    checkpoint_pd += 1; // SIMPLIFIED SOLUTION
+    get_program_state(checkpoint_data);
+    uint32_t offset = PARTITION_OFFSET; //0x43000
     if (nrfx_nvmc_page_erase(offset) != NRFX_SUCCESS) {
         printk("Flash erase failed at offset 0x%X\n", offset);
         return -1;
@@ -73,7 +93,7 @@ void get_program_state(uint32_t * buf) { // Number of stored values needs to mat
     printk("#### GET PROGRAM STATE ####\n");
 
     buf[0] = next_state;
-    buf[1] = current_sample; 
+    buf[1] = current_sample;
 
     // --- PERFORMANCE DATA - SHOULD BE EXCLUDED FROM RESULTS --- //
     buf[2] = checkpoint_pd;

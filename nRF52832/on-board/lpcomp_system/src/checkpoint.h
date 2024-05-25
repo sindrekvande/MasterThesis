@@ -33,7 +33,8 @@ bool set_first_boot_flag();
  * 
  * @return int 
  */
-int checkpoint_create();
+int checkpoint_create_zephyr();
+int checkpoint_create_nrfx();
 
 /**
  * @brief Recovers checkpoint data form befor sleep/reset.
