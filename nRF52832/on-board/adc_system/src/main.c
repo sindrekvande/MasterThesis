@@ -38,17 +38,22 @@ uint16_t current_sample = 0;
 
 int main(void) {
 //---------------------- GPIO -----------------------//
-    nrfx_err_t err_code = nrfx_gpiote_init(3);
-    if (err_code != NRFX_SUCCESS){
-        printk("Error (0x%X)\n", err_code); 
+    nrfx_err_t err_code;
+    if(!nrfx_gpiote_is_init()){
+        err_code = nrfx_gpiote_init(1);
+        if (err_code != NRFX_SUCCESS){
+            printk("Error nrfx_gpiote_init (0x%X)\n", err_code); 
+        }   
     }
 
     nrfx_gpiote_output_config_t out_config = NRFX_GPIOTE_DEFAULT_OUTPUT_CONFIG;
     
     err_code = nrfx_gpiote_output_configure(GPIO_PIN, &out_config, NULL);
     if (err_code != NRFX_SUCCESS){
-        printk("Error (0x%X)\n", err_code); 
+        printk("Error nrfx_gpiote_output_configure (0x%X)\n", err_code); 
     }
+
+    nrfx_gpiote_out_set(GPIO_PIN);
 //---------------------------------------------------//
 
     int err;
@@ -62,10 +67,7 @@ int main(void) {
             case MEASURE:
                 printk("--- MEASURE ---\n");
                 saadc_measure();
-                nrfx_gpiote_out_set(GPIO_PIN);
-                k_sleep(K_MSEC(0.01));
                 saadc_storage_check();
-                nrfx_gpiote_out_clear(GPIO_PIN);
                 break;
 
             case COMMUNICATE:
@@ -78,10 +80,7 @@ int main(void) {
                 }
                 communicate_handler();         
                 //advertisment_uninit();
-                nrfx_gpiote_out_set(GPIO_PIN);
-                k_sleep(K_MSEC(0.01));
                 saadc_storage_check();
-                nrfx_gpiote_out_clear(GPIO_PIN);
                 break;
             
             //case CHECKPOINT:
@@ -95,9 +94,6 @@ int main(void) {
             
             case RECOVER:
                 printk("--- RECOVER ---\n");
-                pm_device_action_run(dev, PM_DEVICE_ACTION_RESUME);
-                nrfx_gpiote_out_clear(GPIO_PIN);
-                k_sleep(K_MSEC(0.01));
                 if (!check_first_boot()) {
                     checkpoint_recover();
                 } //else {
@@ -123,7 +119,7 @@ int main(void) {
                     printk("pm_device_action_run() failed (%d)\n", err);
                 }
 
-                k_sleep(K_SECONDS(5));
+                k_sleep(K_SECONDS(10));
 
                 err = pm_device_action_run(dev, PM_DEVICE_ACTION_RESUME);
                 if (err) {

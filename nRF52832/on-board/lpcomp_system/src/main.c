@@ -33,9 +33,12 @@ uint16_t current_sample = 0;
 
 int main(void) {
 //---------------------- GPIO -----------------------//
-    nrfx_err_t err_code = nrfx_gpiote_init(3);
-    if (err_code != NRFX_SUCCESS){
-        printf("Error (0x%X)\n", err_code); 
+    nrfx_err_t err_code;
+    if(!nrfx_gpiote_is_init()){
+        err_code = nrfx_gpiote_init(1);
+        if (err_code != NRFX_SUCCESS){
+            printk("Error nrfx_gpiote_init (0x%X)\n", err_code); 
+        }   
     }
 
     nrfx_gpiote_output_config_t out_config = NRFX_GPIOTE_DEFAULT_OUTPUT_CONFIG;
@@ -116,7 +119,7 @@ int main(void) {
                     printk("pm_device_action_run(suspend) failed (%d)\n", err);
                 }
 
-                k_sleep(K_SECONDS(5));
+                k_sleep(K_SECONDS(3));
 
                 err = pm_device_action_run(dev, PM_DEVICE_ACTION_RESUME);
                 if (err) {

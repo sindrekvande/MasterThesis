@@ -7,6 +7,7 @@ uint16_t recover_pd = 0;
 uint16_t measure_pd = 0;
 uint16_t communicate_pd = 0;
 bool notif_flag = 0;
+bool threshold_flag = 0;
 
 #define NRFX_SAADC_KVANDE_CHANNEL_SE(_pin_p, _index)                  \
 {                                                                      \
@@ -32,8 +33,8 @@ bool notif_flag = 0;
 
 nrf_saadc_value_t raw_samples[NUMBER_OF_CHANNELS];
 nrfx_saadc_channel_t channels[NUMBER_OF_CHANNELS] = {
-    NRFX_SAADC_KVANDE_CHANNEL_SE(NRF_SAADC_INPUT_AIN0, 0), 
-    NRFX_SAADC_KVANDE_CHANNEL_SE(NRF_SAADC_INPUT_AIN1, 1) 
+    NRFX_SAADC_KVANDE_CHANNEL_SE(NRF_SAADC_INPUT_AIN0, 0),
+    NRFX_SAADC_KVANDE_CHANNEL_SE(NRF_SAADC_INPUT_AIN1, 1)
 };
  
 void handle_error(nrfx_err_t error_code) {
@@ -145,9 +146,16 @@ void saadc_storage_check() {
     // ---------------- //
 
     //printk("Stored current: %d - STATE: %d\n", raw_samples[1], current_state);
-    //recover_pd = raw_samples[1];
-    if (raw_samples[1] < CHECKPOINT_THRESHOLD) {
+    
+    if(raw_samples[1] < CHECKPOINT_THRESHOLD && !threshold_flag){
+        threshold_flag = 1;
+    } else if (raw_samples[1] > CHECKPOINT_STOP_THRESHOLD && threshold_flag) {
+        threshold_flag = 0;
+    }
+
+    if (threshold_flag) {
         //printk("Current too low, checkpoint.\n");
+        printk("STORAGE: %d\n", raw_samples[1]);
         if (current_sample == NUM_SAMPLES) {
             current_sample = 0;
             next_state = COMMUNICATE;
@@ -162,15 +170,18 @@ void saadc_storage_check() {
         }
     } else if (current_state == MEASURE && raw_samples[1] >= CHECKPOINT_THRESHOLD && current_sample == NUM_SAMPLES) {
         //printk("Measure completed, COMMUNICATE.\n");
+        printk("STORAGE: %d\n", raw_samples[1]);
         current_sample = 0;
         next_state = COMMUNICATE;
         current_state = COMMUNICATE;
     } else if (current_state == MEASURE && raw_samples[1] >= CHECKPOINT_THRESHOLD && current_sample != NUM_SAMPLES) {
         //printk("Measure completed, SLEEP.\n");
+        printk("STORAGE: %d\n", raw_samples[1]);
         next_state = SLEEP;
         current_state = SLEEP;
     }else if (current_state == COMMUNICATE && raw_samples[1] >= CHECKPOINT_THRESHOLD) {
         //printk("Communicate completed, SLEEP.\n");
+        printk("STORAGE: %d\n", raw_samples[1]);
         next_state = SLEEP;
         current_state = SLEEP;
     }
