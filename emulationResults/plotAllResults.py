@@ -41,12 +41,26 @@ for i in range(0, len(resultFiles), 3):
     timeDF = pd.read_csv(resultFiles[np.argmax(np.array([len(voltage0),len(voltage1),len(voltage2)]))], sep='\t', usecols = ['datetime'])
 
     timeS = np.array([])
-    for _, t in timeDF:
+    for i, t in timeDF:
         try:
             timeCurr = datetime.strptime(t+'0000', datetime_strT)
+            if i == 0:
+                start = t + '0000'
+                start_str = datetime_strT
         except:
             timeCurr = datetime.strptime(t+'0000', datetime_str)
+            if i == 0:
+                start = t + '0000'
+                start_str = datetime_str
         timeS.append(timeCurr)
+
+    match resultFiles[i][-15:-18]:
+        case '147':
+            timeS = timeS - (timeS[0] - datetime.strptime(start[:-15]+'06:51'+start[-10:], start_str))
+        case '200':
+            timeS = timeS - (timeS[0] - datetime.strptime(start[:-15]+'06:51'+start[-10:], start_str))
+        case '100':
+            timeS = timeS - (timeS[0] - datetime.strptime(start[:-15]+'06:51'+start[-10:], start_str))
 
     voltages = np.array([voltage0, voltage1, voltage2])
     labels = np.array(['Interval', 'ADC', 'LPCOMP'])
