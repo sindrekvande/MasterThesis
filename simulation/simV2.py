@@ -63,7 +63,7 @@ def singleSim(
     checkpointPower     = 3.0 * 10 ** -3 * 3
     recoverPower        = 3.7 * 10 ** -3 * 3
     measureTime         = sampleSize/200
-    communicateTime     = 3.5 + (btSize//10 + (1 if btSize%10 else 0)) *0.009
+    communicateTime     = 1.5 + (btSize//10 + (1 if btSize%10 else 0)) *0.009
 
     interval = 'Interval'
     adc = 'ADC'
@@ -223,10 +223,10 @@ def singleSim(
 
 def plotGraphs(barLoc, energyLoc, timeLoc, timeResults, barResults, energyBar, metrics, params):
     rc('font',**{'family':'serif','serif':['Times New Roman']})
-    barWidth = 0.28
+    barWidth = 0.3
     x = np.arange(len(metrics))
-    fig = plt.figure(figsize=(7,6))
-    colors = ['#0089B3', '#00556F', '#00C4FF']
+    fig = plt.figure(figsize=(4.67,4))
+    colors = ['#80c2c2', '#008585', '#74a892']#['#0089B3', '#00556F', '#00C4FF']
 
     for i in range(3):
         plt.bar(x+barWidth*(i-1), barResults[i][1:], width=barWidth, label=barResults[i][0], color=colors[i])
@@ -240,20 +240,22 @@ def plotGraphs(barLoc, energyLoc, timeLoc, timeResults, barResults, energyBar, m
     plt.cla()
     plt.close()
 
+    energyColors = ['#c0e1e1', '#80c2c2', '#008585', '#74a892', '#e5c185', '#d68a58', '#c7522a', '#642915']#['#00992B', '#997800', '#7C0000', '#000D99', '#174424', '#FFE480', '#FF8080', '#808BFF']
     x = np.arange(3)
-    fig = plt.figure(figsize=(6,6))
+    fig = plt.figure(figsize=(4,4))
     energyBar = [list(l) for l in zip(*energyBar)]
     bot = [0]*len(energyBar[0])
     labels = ['measureUsed', 'measureSaved', 'communicate', 'checkpoint', 'checkpointCheck', 'recover', 'sleep', 'deepSleep']
     for i in range(1, len(energyBar)-1):
-        plt.bar(x, energyBar[i], bottom=bot, width=.9, label=labels[i-1])
+        plt.bar(x, energyBar[i], bottom=bot, width=.8, label=labels[i-1], color=energyColors[i-1])
         bot = [a + b for a, b in zip(bot, energyBar[i])]
     #plt.bar(x + 0.25, energyBar[-1], width=0.5)
     plt.xticks(x, energyBar[0])
     plt.ylabel('Energy use [J]')
     plt.xlabel('Checkpointing scheme')
-    plt.xlim(-.6, 4.4)
-    plt.legend(loc='upper right')
+    plt.xlim(-.6, 6)
+    handles, labels = plt.gcf().axes[0].get_legend_handles_labels()
+    plt.legend(handles[::-1], labels[::-1], loc='upper right')
     plt.savefig(energyLoc, bbox_inches="tight")
     plt.cla()
     plt.close()
@@ -271,16 +273,16 @@ def plotGraphs(barLoc, energyLoc, timeLoc, timeResults, barResults, energyBar, m
     loc = ticker.MultipleLocator(base=1/12) # this locator puts ticks at regular intervals
     plt.gcf().axes[0].xaxis.set_major_locator(loc)
     for i in range(3):
-        ax[i].plot(timeAxis, timeResults[i][1:], label=timeResults[i][0])
+        ax[i].plot(timeAxis, timeResults[i][1:], label=timeResults[i][0], color='#008585')
         ax[i].set(ylabel='Voltage [V]')
         ax[i].legend(loc="upper right")
         ax[i].margins(x=0)
-        ax[i].axhline(2.95, color='grey', ls='--')
-        ax[i].axhline(params['start'], color='green', ls='--')
+        ax[i].axhline(3.0, color='grey', ls='--')
+        ax[i].axhline(params['start'], color='#74a892', ls='--')
         if i != 0:
-            ax[i].axhline(params['stop'], color='orange', ls='--')
-        ax[i].axhline(1.7, color='red', ls='--')
-    ax[3].plot(timeAxis, timeResults[3][1:], label=timeResults[3][0], color=('#ffae49' if params['season'] =='summer' else '#44a5c2' if params['season'] =='autumn' else '#024b7a'))
+            ax[i].axhline(params['stop'], color='#d68a58', ls='--')
+        ax[i].axhline(1.7, color='#642915', ls='--')
+    ax[3].plot(timeAxis, timeResults[3][1:], label=timeResults[3][0], color=('#d68a58' if params['season'] =='summer' else '#c7522a' if params['season'] =='autumn' else '#008585'))
     ax[3].set(xlabel='Time of day', ylabel='Solar irradiance [W/m$^2$]', ylim=[-10,1300])
     ax[3].legend(loc="upper right")
     ax[3].margins(x=0)
