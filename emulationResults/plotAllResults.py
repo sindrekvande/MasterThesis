@@ -71,7 +71,7 @@ for i in range(0, len(resultFiles), 3):
     gs = fig.add_gridspec(4, hspace=0)
     ax = gs.subplots(sharex=True, sharey=False)
     for i in range(3):
-        ax[i].plot(timeS, voltages[i], label=labels[i])
+        ax[i].plot(timeS[len(voltages[i])], voltages[i], label=labels[i])
         ax[i].set(ylabel='Voltage [V]')
         ax[i].legend(loc="upper right")
         ax[i].margins(x=0)
