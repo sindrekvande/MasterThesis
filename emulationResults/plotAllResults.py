@@ -18,16 +18,16 @@ rc('font',**{'family':'serif','serif':['Times New Roman']})
 
 resultFiles = np.array([])
 with open(fileNamesFile) as f:
-    resultFiles = np.array(f.read().splitlines())
-
+    resultFiles = f.read().splitlines()
+print(resultFiles)
 for i in range(0, len(resultFiles), 3):
     VoltageDF0 = pd.read_csv(resultFiles[i], sep='\t', usecols = ['STORAGE_OUT'],  dtype = np.float32)
     VoltageDF1 = pd.read_csv(resultFiles[i+1], sep='\t', usecols = ['STORAGE_OUT'],  dtype = np.float32)
     VoltageDF2 = pd.read_csv(resultFiles[i+2], sep='\t', usecols = ['STORAGE_OUT'],  dtype = np.float32)
-
-    voltage0 = np.array([])
-    voltage1 = np.array([])
-    voltage2 = np.array([])
+    
+    voltage0 = []
+    voltage1 = []
+    voltage2 = []
 
     for _, v in VoltageDF0.itertuples():
         voltage0.append(v)
@@ -38,10 +38,15 @@ for i in range(0, len(resultFiles), 3):
     for _, v2 in VoltageDF2.itertuples():
         voltage2.append(v2)
 
+    voltage0 = np.array(voltage0)
+    voltage1 = np.array(voltage1)
+    voltage2 = np.array(voltage2)
+
     timeDF = pd.read_csv(resultFiles[np.argmax(np.array([len(voltage0),len(voltage1),len(voltage2)]))], sep='\t', usecols = ['datetime'])
 
-    timeS = np.array([])
-    for i, t in timeDF:
+    timeS = []
+
+    for i, t in timeDF.itertuples():
         try:
             timeCurr = datetime.strptime(t+'0000', datetime_strT)
             if i == 0:
@@ -54,15 +59,16 @@ for i in range(0, len(resultFiles), 3):
                 start_str = datetime_str
         timeS.append(timeCurr)
 
-    match resultFiles[i][-15:-18]:
-        case '147':
-            timeS = timeS - (timeS[0] - datetime.strptime(start[:-15]+'06:17'+start[-10:], start_str))
-        case '200':
-            timeS = timeS - (timeS[0] - datetime.strptime(start[:-15]+'06:38'+start[-10:], start_str))
-        case '100':
-            timeS = timeS - (timeS[0] - datetime.strptime(start[:-15]+'05:51'+start[-10:], start_str))
-        case '294':
-            timeS = timeS - (timeS[0] - datetime.strptime(start[:-15]+'07:11'+start[-10:], start_str))
+    timeS = np.array(timeS)
+
+    if resultFiles[i][-15:-18] == '147':
+        timeS = timeS - (timeS[0] - datetime.strptime(start[:-15]+'06:17'+start[-10:], start_str))
+    elif resultFiles[i][-15:-18] == '200':
+        timeS = timeS - (timeS[0] - datetime.strptime(start[:-15]+'06:38'+start[-10:], start_str))
+    elif resultFiles[i][-15:-18] == '100':
+        timeS = timeS - (timeS[0] - datetime.strptime(start[:-15]+'05:51'+start[-10:], start_str))
+    elif resultFiles[i][-15:-18] == '294':
+        timeS = timeS - (timeS[0] - datetime.strptime(start[:-15]+'07:11'+start[-10:], start_str))
 
     voltages = np.array([voltage0, voltage1, voltage2])
     labels = np.array(['Interval', 'ADC', 'LPCOMP'])
@@ -71,7 +77,7 @@ for i in range(0, len(resultFiles), 3):
     gs = fig.add_gridspec(4, hspace=0)
     ax = gs.subplots(sharex=True, sharey=False)
     for i in range(3):
-        ax[i].plot(timeS[len(voltages[i])], voltages[i], label=labels[i])
+        ax[i].plot(timeS, voltages[i], label=labels[i])
         ax[i].set(ylabel='Voltage [V]')
         ax[i].legend(loc="upper right")
         ax[i].margins(x=0)
