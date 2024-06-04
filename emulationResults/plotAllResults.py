@@ -56,11 +56,13 @@ for i in range(0, len(resultFiles), 3):
 
     match resultFiles[i][-15:-18]:
         case '147':
-            timeS = timeS - (timeS[0] - datetime.strptime(start[:-15]+'06:51'+start[-10:], start_str))
+            timeS = timeS - (timeS[0] - datetime.strptime(start[:-15]+'06:17'+start[-10:], start_str))
         case '200':
-            timeS = timeS - (timeS[0] - datetime.strptime(start[:-15]+'06:51'+start[-10:], start_str))
+            timeS = timeS - (timeS[0] - datetime.strptime(start[:-15]+'06:38'+start[-10:], start_str))
         case '100':
-            timeS = timeS - (timeS[0] - datetime.strptime(start[:-15]+'06:51'+start[-10:], start_str))
+            timeS = timeS - (timeS[0] - datetime.strptime(start[:-15]+'05:51'+start[-10:], start_str))
+        case '294':
+            timeS = timeS - (timeS[0] - datetime.strptime(start[:-15]+'07:11'+start[-10:], start_str))
 
     voltages = np.array([voltage0, voltage1, voltage2])
     labels = np.array(['Interval', 'ADC', 'LPCOMP'])
