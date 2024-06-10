@@ -45,7 +45,7 @@ for i in range(0, len(resultFiles), 3):
     plt.xlabel('Metric')
     plt.legend(loc='best')
     fig.tight_layout()
-    plt.savefig('emulationResults/allPlots/'+resultFiles[i][-19:-4]+'.pdf', format='pdf', bbox_inches="tight")
+    plt.savefig('emulationResults/allPerfPlots/'+resultFiles[i][-19:-4]+'.pdf', format='pdf', bbox_inches="tight")
     #plt.show()
     plt.cla()
     plt.close()
