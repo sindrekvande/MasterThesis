@@ -22,6 +22,3 @@ emulationResults/IoTEval02_Performance_Log_2024-06-06_09-58_lpcomp_02_100_10_10_
 emulationResults/IoTEval02_Performance_Log_2024-06-06_21-12_interval_02_200_10_10_05.tsv
 emulationResults/IoTEval02_Performance_Log_2024-06-07_07-31_adc_02_200_10_10_05.tsv
 emulationResults/IoTEval02_Performance_Log_2024-06-07_23-05_lpcomp_02_200_10_10_05.tsv
-
-
-
