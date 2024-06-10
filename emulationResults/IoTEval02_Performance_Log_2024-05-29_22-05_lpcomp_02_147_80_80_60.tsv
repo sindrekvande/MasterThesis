@@ -1,0 +1,5 @@
+Timestamp	Checkpoint count	Recover count	Sampling count	Communication count	Connection Errors
+2024-05-30T00:09:43	0	0	80	1	0
+2024-05-30T01:29:54	0	0	160	2	1
+2024-05-30T04:10:09	0	0	320	4	1
+2024-05-30T06:50:23	0	0	480	6	1
