@@ -44,7 +44,7 @@ for i in range(0, len(resultFiles), 3):
     plt.xticks(mlen, metrics)
     plt.ylabel('Number of times')
     plt.xlabel('Metric')
-    plt.xlim(-1,4)
+    plt.xlim(right=3.9)
     plt.legend(loc='best')
     fig.tight_layout()
     plt.savefig('emulationResults/allPerfPlots/barPlot'+resultFiles[i][-19:-4]+'.pdf', format='pdf', bbox_inches="tight")

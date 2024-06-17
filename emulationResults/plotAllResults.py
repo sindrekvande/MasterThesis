@@ -44,6 +44,7 @@ for i in range(0, len(resultFiles), 3):
 
     timeDF = pd.read_csv(resultFiles[i+ np.argmax([len(voltage0),len(voltage1),len(voltage2)])], sep='\t', usecols = ['datetime'])
     ledDF = pd.read_csv(resultFiles[i+ np.argmax([len(voltage0),len(voltage1),len(voltage2)])], sep='\t', usecols = ['ledPercent'])
+    minLen = np.argmin([len(voltage0),len(voltage1),len(voltage2)])
 
     timeS = []
     led = []
@@ -95,21 +96,21 @@ for i in range(0, len(resultFiles), 3):
         if y != 0:
             ax[y].axhline(1.9, color='#d68a58', ls='--',zorder=10, linewidth=1)
         ax[y].axhline(1.7, color='#642915', ls='--',zorder=10, linewidth=1)
-        ax[y].set(ylim=[-.1, 3.5], yticks=[0,1,2,3])
+        ax[y].set(ylim=[-.1, 3.5]) #, yticks=[0,1,2,3]
     ax[3].plot(timeS, led, label='LED', color='#d68a58', linewidth=1)
     ax[3].axhline(0.5, color='grey', ls='--', linewidth=1)
     ax[3].set(xlabel='Time of day', ylabel='Brightness [%]')
     ax[3].legend(loc="upper right")
     ax[3].margins(x=0)
     ax[3].legend(loc="upper right")
-    ax[3].set(ylim=[-.1, 3.5],  yticks=[0,1,2,3])
+    ax[3].set(ylim=[-.1, 3.5]) #,  yticks=[0,1,2,3]
     xformatter = mdates.DateFormatter('%H:%M')
     plt.gcf().axes[0].xaxis.set_major_formatter(xformatter)
     #loc = ticker.MultipleLocator(base=1/12)
     #plt.gcf().axes[0].xaxis.set_major_locator(loc)
     plt.xlim(right=datetime.strptime(start[:-15]+'18:00'+start[-10:], start_str))
     fig.tight_layout()
-    plt.savefig('emulationResults/allPlots/'+resultFiles[i][-19:-4]+'.pdf', format='pdf', bbox_inches="tight")
-    #plt.show()
+    #plt.savefig('emulationResults/allPlots/'+resultFiles[i][-19:-4]+'.pdf', format='pdf', bbox_inches="tight")
+    plt.show()
     plt.cla()
     plt.close()

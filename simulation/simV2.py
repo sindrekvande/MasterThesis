@@ -67,7 +67,7 @@ def singleSim(
 
     interval = 'Interval'
     adc = 'ADC'
-    svs = 'SVS'
+    svs = 'LPCOMP'
     schemes = [interval, adc, svs]
     trace = fh.file(season, day).brightnessDF
     measure, sleep, deepSleep, communicate, dead, checkpoint, recover = False, False, False, False, True, False, False
@@ -213,15 +213,16 @@ def singleSim(
                     irrTrace.append(irrValue)
 
         print(totalEnergyIn)
+        print(totalEnergy)
         timeResults[sCount] = voltage
         if s == svs:
             timeResults[sCount + 1] = irrTrace
         barResults.append([s, timesCheckpointed, timesRecovered, timesMeasured, timesCommunicated])
         energyBar.append([s, measureEnergyUsed, measureEnergySaved, communicateEnergy, checkpointEnergy, checkpointCheckEnergy, recoverEnergy, sleepEnergy, deepSleepEnergy, totalEnergy])
     del voltage, irrTrace, capacitor, timesMeasured, timesCommunicated, timesCheckpointed, timesRecovered
-    return timeResults, barResults, energyBar
+    return timeResults, barResults, energyBar, totalEnergyIn
 
-def plotGraphs(barLoc, energyLoc, timeLoc, timeResults, barResults, energyBar, metrics, params):
+def plotGraphs(barLoc, energyLoc, timeLoc, timeResults, barResults, energyBar, metrics, params, totalEnergyIn):
     rc('font',**{'family':'serif','serif':['Times New Roman']})
     barWidth = 0.3
     x = np.arange(len(metrics))
@@ -235,7 +236,8 @@ def plotGraphs(barLoc, energyLoc, timeLoc, timeResults, barResults, energyBar, m
     plt.xticks(x, metrics)
     plt.ylabel('Number of times')
     plt.xlabel('Metric')
-    plt.legend(loc='best')
+    plt.xlim(right=3.9)
+    plt.legend(loc='upper right')
     plt.savefig(barLoc, bbox_inches="tight")
     plt.cla()
     plt.close()
@@ -253,6 +255,7 @@ def plotGraphs(barLoc, energyLoc, timeLoc, timeResults, barResults, energyBar, m
     plt.xticks(x, energyBar[0])
     plt.ylabel('Energy use [J]')
     plt.xlabel('Checkpointing scheme')
+    plt.axhline(totalEnergyIn, color='grey', ls='--')
     plt.xlim(-.6, 6)
     handles, labels = plt.gcf().axes[0].get_legend_handles_labels()
     plt.legend(handles[::-1], labels[::-1], loc='upper right')
@@ -310,7 +313,7 @@ def multiSim():
         barLoc = 'simulation/results/'+simSetFile+'Results/'+simSetFile+'_bar_'+str(row['season'])+str(row['day'])+'_'+str(int(row['capacitance']))+'mF'+'_sampleNum'+str(row['sampleNum'])+'_sampleSize'+str(row['sampleSize'])+'_sleep'+str(row['sleep'])+'_start'+str(row['start'])[0]+'V'+str(row['start'])[2]+'_stop'+str(row['stop'])[0]+'V'+str(row['stop'])[2]+'.png'
         energyLoc = 'simulation/results/'+simSetFile+'Results/'+simSetFile+'_energy_'+str(row['season'])+str(row['day'])+'_'+str(int(row['capacitance']))+'mF'+'_sampleNum'+str(row['sampleNum'])+'_sampleSize'+str(row['sampleSize'])+'_sleep'+str(row['sleep'])+'_start'+str(row['start'])[0]+'V'+str(row['start'])[2]+'_stop'+str(row['stop'])[0]+'V'+str(row['stop'])[2]+'.png'
         
-        timeResults, barResults, energyBar = singleSim(sampleNum       = row['sampleNum'],
+        timeResults, barResults, energyBar, totalEnergyIn = singleSim(sampleNum       = row['sampleNum'],
                                                         sampleSize      = row['sampleSize'],
                                                         sleepTime       = row['sleep'],
                                                         day             = row['day'],
@@ -320,8 +323,8 @@ def multiSim():
                                                         season          = row['season'],
                                                         scale           = 3/1000 * (8.618893646327617/6.3966938148805825 if row['day'] == 10 else 1))
         
-        plotGraphs(barLoc, energyLoc, timeLoc, timeResults, barResults, energyBar, metrics, row)
+        plotGraphs(barLoc, energyLoc, timeLoc, timeResults, barResults, energyBar, metrics, row, totalEnergyIn)
 
-        xl.writeExcel(resultLoc, params, barLoc, energyLoc, timeLoc)
+        #xl.writeExcel(resultLoc, params, barLoc, energyLoc, timeLoc)
 
 multiSim()
